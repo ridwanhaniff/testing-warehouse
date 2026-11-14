@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#d97706">
+    <title>Mitra Jahit · Ina Basic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f8fafc;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, .15);
+        }
+
+        .toast-item {
+            animation: toastIn .2s ease-out both;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-slate-800 antialiased flex flex-col max-w-md mx-auto relative">
+
+    <!-- Header -->
+    <header class="bg-amber-600 px-5 pt-10 pb-6 text-white shadow-md rounded-b-3xl">
+        <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
+                <span class="font-black text-xl">✂️</span>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-amber-200">Mitra Jahit Ina Basic</p>
+                <h1 class="text-xl font-black">Portal Produksi Jahit</h1>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="mt-5 flex gap-2 rounded-2xl bg-amber-700/50 p-1">
+            <button id="tab-lapor" type="button"
+                class="flex-1 rounded-xl bg-white py-2.5 text-xs font-bold text-amber-800 shadow-sm transition">Lapor
+                Selesai</button>
+            <button id="tab-terima" type="button"
+                class="flex-1 rounded-xl py-2.5 text-xs font-bold text-amber-100 transition">Terima Bahan</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 px-5 py-6">
+        <!-- TAB 1: LAPOR SELESAI JAHITAN -->
+        <section id="section-lapor">
+            <div class="mb-4 text-sm text-slate-600">
+                Klaim penyelesaian jahitan Anda agar dapat diproses (QC) dan dihitung upahnya oleh pihak gudang.
+            </div>
+
+            <form id="form-lapor" class="space-y-4">
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Pilih Nomor
+                                WO</label>
+                            <button type="button" id="btn-refresh-wo" class="text-[11px] font-bold text-amber-600">Muat
+                                ulang</button>
+                        </div>
+                        <select id="lapor-wo-select"
+                            class="input-field w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold bg-white">
+                            <option value="">Memuat daftar WO aktif...</option>
+                        </select>
+                        <input id="lapor-wo-manual" type="text"
+                            class="input-field mt-2 hidden w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                            placeholder="Ketik Nomor WO manual...">
+                    </div>
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">Nama
+                            Penjahit / Tim</label>
+                        <input id="lapor-nama" type="text"
+                            class="input-field w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                            placeholder="Nama Anda" required>
+                    </div>
+
+                    <div class="flex gap-4 pt-2">
+                        <div class="flex-1">
+                            <label
+                                class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-emerald-600">Jahitan
+                                Bagus</label>
+                            <input id="lapor-bagus" type="number" min="0"
+                                class="input-field w-full rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xl text-center font-black text-emerald-800"
+                                placeholder="0" required>
+                        </div>
+                        <div class="flex-1">
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-rose-600">Cacat /
+                                Reject</label>
+                            <input id="lapor-cacat" type="number" min="0"
+                                class="input-field w-full rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xl text-center font-black text-rose-800"
+                                placeholder="0" required>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-submit-lapor" type="submit"
+                    class="w-full rounded-2xl bg-amber-600 p-4 text-base font-bold text-white shadow-xl shadow-amber-600/30 transition active:scale-95">Kirim
+                    Laporan Jahit</button>
+            </form>
+        </section>
+
+        <!-- TAB 2: KONFIRMASI TERIMA BAHAN DARI GUDANG -->
+        <section id="section-terima" class="hidden">
+            <div class="mb-4 text-sm text-slate-600">
+                Konfirmasi penerimaan kain/bahan yang dikirim dari gudang agar tercatat akurat pada modal produksi.
+            </div>
+
+            <form id="form-terima" class="space-y-4">
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Pilih
+                                Pengiriman Masuk</label>
+                            <button type="button" id="btn-refresh-deliv"
+                                class="text-[11px] font-bold text-amber-600">Muat ulang</button>
+                        </div>
+                        <select id="terima-deliv-select"
+                            class="input-field w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold bg-white">
+                            <option value="">Memuat kiriman dalam perjalanan...</option>
+                        </select>
+                        <input id="terima-deliv-manual" type="text"
+                            class="input-field mt-2 hidden w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                            placeholder="Masukkan ID Surat Jalan (DEL-...) / Token">
+                    </div>
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">Jumlah
+                            Diterima Aktual</label>
+                        <input id="terima-qty" type="number" step="0.01" min="0.01"
+                            class="input-field w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg font-black"
+                            placeholder="0" required>
+                    </div>
+                    <div>
+                        <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">Nama
+                            Penerima</label>
+                        <input id="terima-nama" type="text"
+                            class="input-field w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                            placeholder="Nama penerima bahan" required>
+                    </div>
+                </div>
+                <button id="btn-submit-terima" type="submit"
+                    class="w-full rounded-2xl bg-slate-900 p-4 text-base font-bold text-white shadow-xl transition active:scale-95">Konfirmasi
+                    Bahan Diterima</button>
+            </form>
+        </section>
+    </main>
+
+    <div id="toast-root" class="pointer-events-none fixed inset-x-0 top-10 z-50 flex flex-col items-center gap-2 px-4"
+        aria-live="polite"></div>
+
+    <script>
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxgR2xo-4FYI4e5KfLYBH-u7SGJ9CS8Xp19b8JRvENilP0Beon-XYYlAV5n7kTd6Rx6wA/exec';
+
+        function toast(msg, type = 'success') {
+            const el = document.createElement('div');
+            el.className = `toast-item pointer-events-auto flex max-w-sm items-center gap-3 rounded-2xl px-4 py-3 text-sm font-bold text-white shadow-2xl ${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
+            el.innerHTML = `<span>${type === 'success' ? '✓' : '×'}</span><span class="flex-1">${msg}</span>`;
+            document.getElementById('toast-root').appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        // Tab switching
+        const tabLapor = document.getElementById('tab-lapor');
+        const tabTerima = document.getElementById('tab-terima');
+        const secLapor = document.getElementById('section-lapor');
+        const secTerima = document.getElementById('section-terima');
+
+        tabLapor.onclick = () => {
+            secLapor.classList.remove('hidden'); secTerima.classList.add('hidden');
+            tabLapor.className = 'flex-1 rounded-xl bg-white py-2.5 text-xs font-bold text-amber-800 shadow-sm transition';
+            tabTerima.className = 'flex-1 rounded-xl py-2.5 text-xs font-bold text-amber-100 transition';
+        };
+
+        tabTerima.onclick = () => {
+            secTerima.classList.remove('hidden'); secLapor.classList.add('hidden');
+            tabTerima.className = 'flex-1 rounded-xl bg-white py-2.5 text-xs font-bold text-amber-800 shadow-sm transition';
+            tabLapor.className = 'flex-1 rounded-xl py-2.5 text-xs font-bold text-amber-100 transition';
+            loadDeliveries();
+        };
+
+        async function loadActiveWo() {
+            const sel = document.getElementById('lapor-wo-select');
+            const manual = document.getElementById('lapor-wo-manual');
+            sel.innerHTML = '<option value="">Memuat daftar WO...</option>';
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'GET_ACTIVE_WO' }) });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message);
+                sel.innerHTML = '<option value="">-- Pilih Nomor WO --</option>';
+                (json.data.wo_list || []).forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.nomor_wo;
+                    opt.textContent = `${w.nomor_wo} · ${w.tim_label}`;
+                    sel.appendChild(opt);
+                });
+                const optManual = document.createElement('option');
+                optManual.value = '__MANUAL__';
+                optManual.textContent = '+ Ketik Nomor WO Manual';
+                sel.appendChild(optManual);
+            } catch (e) {
+                sel.innerHTML = '<option value="__MANUAL__">Ketik Nomor WO Manual</option>';
+                manual.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('lapor-wo-select').addEventListener('change', (e) => {
+            const manual = document.getElementById('lapor-wo-manual');
+            manual.classList.toggle('hidden', e.target.value !== '__MANUAL__');
+        });
+
+        async function loadDeliveries() {
+            const sel = document.getElementById('terima-deliv-select');
+            const manual = document.getElementById('terima-deliv-manual');
+            sel.innerHTML = '<option value="">Memuat daftar kiriman...</option>';
+            try {
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'GET_DELIVERIES', only_in_transit: true }) });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message);
+                sel.innerHTML = '<option value="">-- Pilih Kiriman Bahan --</option>';
+                (json.data.deliveries || []).forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.delivery_id;
+                    opt.dataset.qty = d.qty_aktual_kirim;
+                    opt.textContent = `${d.delivery_id} · ${d.kode_bahan} (${d.qty_aktual_kirim})`;
+                    sel.appendChild(opt);
+                });
+                const optManual = document.createElement('option');
+                optManual.value = '__MANUAL__';
+                optManual.textContent = '+ Ketik Kode Surat Jalan Manual';
+                sel.appendChild(optManual);
+            } catch (e) {
+                sel.innerHTML = '<option value="__MANUAL__">Ketik Kode Manual</option>';
+                manual.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('terima-deliv-select').addEventListener('change', (e) => {
+            const manual = document.getElementById('terima-deliv-manual');
+            manual.classList.toggle('hidden', e.target.value !== '__MANUAL__');
+            const selectedOpt = e.target.options[e.target.selectedIndex];
+            if (selectedOpt && selectedOpt.dataset.qty) {
+                document.getElementById('terima-qty').value = selectedOpt.dataset.qty;
+            }
+        });
+
+        document.getElementById('btn-refresh-wo').onclick = loadActiveWo;
+        document.getElementById('btn-refresh-deliv').onclick = loadDeliveries;
+
+        // Submit Laporan Jahit
+        document.getElementById('form-lapor').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selVal = document.getElementById('lapor-wo-select').value;
+            const noWo = selVal === '__MANUAL__' ? document.getElementById('lapor-wo-manual').value.trim() : selVal;
+            const nama = document.getElementById('lapor-nama').value.trim();
+            const bagus = parseInt(document.getElementById('lapor-bagus').value) || 0;
+            const cacat = parseInt(document.getElementById('lapor-cacat').value) || 0;
+
+            if (!noWo || !nama) return toast('Harap pilih/isi Nomor WO dan Nama Anda.', 'error');
+            if (bagus + cacat <= 0) return toast('Minimal jumlah total laporan adalah 1.', 'error');
+
+            const btn = document.getElementById('btn-submit-lapor');
+            btn.disabled = true; btn.textContent = 'Mengirim Laporan...';
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'SUBMIT_LAPORAN_JAHIT',
+                        transaction_id: 'REP-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(),
+                        nomor_wo: noWo,
+                        nama_penjahit: nama,
+                        qty_bagus: bagus,
+                        qty_cacat: cacat
+                    })
+                });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message);
+                toast(json.message || 'Laporan berhasil dikirim ke gudang!');
+                document.getElementById('form-lapor').reset();
+                loadActiveWo();
+            } catch (err) {
+                toast(err.message || 'Gagal menghubungi server.', 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Kirim Laporan Jahit';
+            }
+        });
+
+        // Submit Konfirmasi Terima Bahan
+        document.getElementById('form-terima').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selVal = document.getElementById('terima-deliv-select').value;
+            const delivId = selVal === '__MANUAL__' ? document.getElementById('terima-deliv-manual').value.trim() : selVal;
+            const qtyTerima = parseFloat(document.getElementById('terima-qty').value) || 0;
+            const penerima = document.getElementById('terima-nama').value.trim();
+
+            if (!delivId || !penerima || qtyTerima <= 0) return toast('Lengkapi semua data penerimaan bahan.', 'error');
+
+            const btn = document.getElementById('btn-submit-terima');
+            btn.disabled = true; btn.textContent = 'Memproses...';
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'CONFIRM_DELIVERY_BAHAN',
+                        delivery_id: delivId,
+                        qty_terima: qtyTerima,
+                        penerima: penerima
+                    })
+                });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message);
+                toast(json.message);
+                document.getElementById('form-terima').reset();
+                loadDeliveries();
+            } catch (err) {
+                toast(err.message || 'Gagal menghubungi server.', 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Konfirmasi Bahan Diterima';
+            }
+        });
+
+        loadActiveWo();
+    </script>
+</body>
+
+</html>

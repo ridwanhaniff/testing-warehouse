@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Ina Warehouse">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Ina Basic Store · Warehouse</title>
+  <title>Ina Basic Store · Warehouse V4.2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
@@ -134,29 +134,20 @@
     <main class="flex-1 px-4 py-5 safe-bottom">
       <!-- HOME -->
       <section id="screen-home" class="screen-enter">
-        <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Aktivitas</h2>
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Aktivitas Gudang</h2>
           <span id="menu-count-badge"
-            class="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500">8 MENU</span>
+            class="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500">13 MENU</span>
         </div>
         <div id="activity-list" class="grid grid-cols-2 gap-3"></div>
-        <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-          <div class="flex items-start gap-3">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><svg
-                class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 8v4l3 2" />
-                <circle cx="12" cy="12" r="9" />
-              </svg></span>
-            <div>
-              <p class="text-sm font-semibold">Sistem variasi aktif</p>
-              <p class="mt-1 text-xs leading-relaxed text-slate-500">Satu barcode dapat memiliki banyak kombinasi
-                atribut. Stok dihitung berdasarkan variasi dan lokasi.</p>
-            </div>
-          </div>
+
+        <div class="mt-6 mb-4 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Produksi, QC & Keuangan HPP</h2>
         </div>
+        <div id="activity-list-produksi" class="grid grid-cols-2 gap-3"></div>
       </section>
 
-      <!-- OPNAME SESSIONS (NEW) -->
+      <!-- OPNAME SESSIONS -->
       <section id="screen-opname-sessions" class="hidden">
         <div class="mb-4 flex items-center gap-3">
           <button id="btn-back-opname"
@@ -173,11 +164,8 @@
             class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm font-bold text-xl">+</button>
         </div>
 
-        <div id="opname-session-list" class="space-y-3 mt-5">
-          <!-- Session cards injected here -->
-        </div>
+        <div id="opname-session-list" class="space-y-3 mt-5"></div>
 
-        <!-- Create Session Modal Form -->
         <div id="create-session-form" class="hidden mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <h3 class="font-bold text-sm mb-3">Buat Sesi Opname Baru</h3>
           <div class="space-y-3">
@@ -186,7 +174,7 @@
                 Sesi</label>
               <input id="new-session-name"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Contoh: Opname Rak A Jan 2026">
+                placeholder="Contoh: Opname Rak A Nov 2026">
             </div>
             <div>
               <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Lokasi
@@ -210,7 +198,6 @@
           </div>
         </div>
 
-        <!-- Approve Session Modal Form -->
         <div id="approve-session-form" class="hidden mt-6 rounded-2xl border border-amber-300 bg-white p-4 shadow-sm">
           <h3 class="font-bold text-sm text-amber-900 mb-1">Setujui & Selesaikan Sesi</h3>
           <p id="approve-session-desc" class="text-xs text-slate-500 mb-3"></p>
@@ -254,7 +241,6 @@
             </svg></button>
         </div>
 
-        <!-- Opname Active Session Indicator -->
         <div id="scan-opname-indicator"
           class="hidden mb-3 rounded-xl bg-amber-50 px-3 py-2 border border-amber-200 flex items-center gap-2">
           <span
@@ -305,7 +291,6 @@
           </div>
         </div>
 
-        <!-- Peringatan Opname Form -->
         <div id="form-opname-alert" class="hidden mb-3 rounded-xl bg-amber-50 px-3 py-2 border border-amber-200">
           <p class="text-xs font-bold text-amber-800">Menghitung Sesi: <span id="form-opname-session-name"></span></p>
           <p class="text-[10px] text-amber-600">Lokasi: <span id="form-opname-location"></span></p>
@@ -330,7 +315,6 @@
             </div>
           </div>
 
-          <!-- Transaction variant picker -->
           <div id="variant-select-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="mb-3">
               <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih variasi barang</p>
@@ -346,7 +330,6 @@
             </div>
           </div>
 
-          <!-- Variant management -->
           <div id="variant-manage-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="flex items-center justify-between">
               <div>
@@ -361,7 +344,6 @@
               Tambah kombinasi variasi</button>
           </div>
 
-          <!-- Dynamic attribute builder -->
           <div id="attribute-builder-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="flex items-start justify-between gap-2">
               <div>
@@ -389,7 +371,6 @@
             </div>
           </div>
 
-          <!-- Location selectors -->
           <div id="location-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div id="location-from-wrap" class="hidden">
               <p id="location-from-label"
@@ -411,7 +392,6 @@
             <p id="qty-hint" class="mt-1 text-xs text-slate-400"></p>
           </div>
 
-          <!-- Input Pelapor -->
           <div id="reporter-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
             <label id="reporter-label"
               class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pelapor /
@@ -432,7 +412,7 @@
         </form>
       </section>
 
-      <!-- MASTER BAHAN (NEW) -->
+      <!-- MASTER BAHAN -->
       <section id="screen-bahan" class="hidden">
         <div class="mb-4 flex items-center gap-3">
           <button id="btn-back-bahan"
@@ -443,7 +423,7 @@
             </svg></button>
           <div class="min-w-0 flex-1">
             <h2 class="text-base font-bold">Master Bahan</h2>
-            <p class="text-xs text-slate-400">Daftarkan bahan baku baru</p>
+            <p class="text-xs text-slate-400">Daftarkan bahan baku & estimasi modal</p>
           </div>
         </div>
         <form id="form-bahan" class="space-y-4">
@@ -474,10 +454,11 @@
                 </select>
               </div>
               <div class="flex-1">
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Est. Cost
-                  (Opsional)</label>
-                <input id="bahan-cost" type="number"
-                  class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm" placeholder="0">
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Harga Modal
+                  / Satuan (Rp)</label>
+                <input id="bahan-cost" type="number" min="0"
+                  class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold"
+                  placeholder="85000" required>
               </div>
             </div>
           </div>
@@ -487,7 +468,7 @@
         </form>
       </section>
 
-      <!-- WO JAHIT (NEW) -->
+      <!-- WO JAHIT -->
       <section id="screen-wo-jahit" class="hidden">
         <div class="mb-4 flex items-center gap-3">
           <button id="btn-back-wo"
@@ -523,13 +504,11 @@
                   class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white"></select>
               </div>
             </div>
-            <div class="flex gap-3">
-              <div class="flex-1">
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Target
-                  Selesai</label>
-                <input id="wo-target-date" type="date"
-                  class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm">
-              </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Target
+                Selesai</label>
+              <input id="wo-target-date" type="date"
+                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm">
             </div>
             <div>
               <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan
@@ -563,6 +542,241 @@
             Work Order</button>
         </form>
       </section>
+
+      <!-- KIRIM BAHAN KE PENJAHIT (BARU - INTEGRASI PENGIRIMAN_BAHAN) -->
+      <section id="screen-kirim-bahan" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-kirim-bahan"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Kirim Bahan Produksi</h2>
+            <p class="text-xs text-slate-400">Surat jalan bahan ke tim penjahit</p>
+          </div>
+        </div>
+        <form id="form-kirim-bahan" class="space-y-4">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Work
+                Order (WO)</label>
+              <select id="kirim-wo"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm bg-white font-semibold"
+                required></select>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Jenis
+                Bahan</label>
+              <select id="kirim-kode-bahan"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm bg-white font-semibold"
+                required></select>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Kuantitas
+                Dikirim</label>
+              <input id="kirim-qty" type="number" step="0.01" min="0.01"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-lg font-bold" placeholder="0"
+                required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Kurir /
+                Pengirim Gudang</label>
+              <input id="kirim-kurir" type="text"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Nama pengirim..."
+                required>
+            </div>
+          </div>
+          <button id="btn-submit-kirim-bahan" type="submit"
+            class="w-full rounded-2xl bg-sky-600 p-4 text-sm font-bold text-white shadow-lg">Catat Pengiriman
+            Bahan</button>
+        </form>
+        <div id="kirim-result-card" class="hidden mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-center">
+          <p class="text-[10px] font-bold uppercase text-sky-600">Kode Konfirmasi Terima Bahan</p>
+          <p id="kirim-result-id" class="mt-1 font-mono text-lg font-black text-sky-900"></p>
+          <p class="mt-1 text-xs text-sky-700">Berikan kode ini ke penjahit untuk konfirmasi barang tiba.</p>
+        </div>
+      </section>
+
+      <!-- TERIMA & QC -->
+      <section id="screen-qc" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-qc"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Terima & QC</h2>
+            <p class="text-xs text-slate-400">Verifikasi laporan penjahit</p>
+          </div>
+        </div>
+        <div id="qc-list-wrap" class="space-y-3">
+          <p class="text-center text-xs text-slate-500 py-4" id="qc-loading">Memuat antrean QC...</p>
+        </div>
+        <form id="form-qc" class="space-y-4 hidden mt-4">
+          <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-emerald-600 uppercase">Memproses Laporan</p>
+            <p id="qc-rep-id" class="font-bold text-sm text-emerald-900"></p>
+            <p id="qc-wo-id" class="text-xs text-emerald-700"></p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <button type="button" id="btn-scan-wip"
+              class="w-full rounded-xl bg-slate-800 p-3 text-sm font-bold text-white shadow-sm flex items-center justify-center gap-2">
+              Scan Barcode Produk WIP
+            </button>
+            <div id="qc-wip-detail" class="hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <p id="qc-wip-prod-name" class="text-xs font-bold text-slate-800 mb-1"></p>
+              <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Pilih Variasi Masuk Stok</p>
+              <div id="qc-wip-variants" class="space-y-2"></div>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Tarif
+                Jahit</label>
+              <select id="qc-tarif" class="input-field w-full rounded-xl border border-slate-200 p-2.5 text-sm bg-white"
+                required></select>
+            </div>
+            <div class="flex gap-3 mt-3">
+              <div class="flex-1">
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Lolos
+                  (Masuk Stok)</label>
+                <input id="qc-lolos" type="number" min="0"
+                  class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold" required>
+              </div>
+              <div class="flex-1">
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-rose-600">Gagal
+                  (Reject)</label>
+                <input id="qc-gagal" type="number" min="0"
+                  class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold" required>
+              </div>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin
+                QC</label>
+              <input id="qc-nama" class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm"
+                placeholder="Nama Anda" required>
+            </div>
+          </div>
+          <button id="btn-submit-qc" type="submit"
+            class="w-full rounded-2xl bg-emerald-600 p-4 text-sm font-bold text-white shadow-lg">Simpan & Hitung
+            Upah</button>
+        </form>
+      </section>
+
+      <!-- MASTER TARIF -->
+      <section id="screen-tarif" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-tarif"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Master Tarif</h2>
+            <p class="text-xs text-slate-400">Atur standar upah per potong</p>
+          </div>
+        </div>
+        <form id="form-tarif" class="space-y-4">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Kode Model
+                (WIP)</label>
+              <input id="tarif-kode" class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm"
+                placeholder="Cth: POLOS-30S" required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Deskripsi
+                Model</label>
+              <input id="tarif-desc" class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm"
+                placeholder="Kaos Polos Cotton 30s" required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-indigo-600">Upah per Pcs
+                (Rp)</label>
+              <input id="tarif-upah" type="number" min="1"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold text-indigo-700"
+                placeholder="3500" required>
+            </div>
+          </div>
+          <button id="btn-submit-tarif" type="submit"
+            class="w-full rounded-2xl bg-indigo-600 p-4 text-sm font-bold text-white shadow-lg">Simpan Tarif</button>
+        </form>
+      </section>
+
+      <!-- REKAP UPAH -->
+      <section id="screen-upah" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-upah"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Rekap Upah</h2>
+            <p class="text-xs text-slate-400">Tagihan Penjahit & Slip Gaji</p>
+          </div>
+        </div>
+        <div id="upah-loading" class="text-center text-xs text-slate-500 py-4">Memuat data tagihan...</div>
+        <div id="upah-list-wrap" class="space-y-4"></div>
+
+        <!-- Modal Form Konfirmasi Pelunasan (Menggantikan window.prompt) -->
+        <div id="pay-slip-modal" class="hidden mt-4 rounded-2xl border border-violet-300 bg-white p-4 shadow-md">
+          <h3 class="text-sm font-bold text-violet-900">Konfirmasi Pelunasan Slip Gaji</h3>
+          <p id="pay-slip-desc" class="mt-1 text-xs text-slate-500"></p>
+          <div class="mt-3 space-y-3">
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin
+                Pembayar</label>
+              <input id="pay-slip-admin"
+                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                placeholder="Ketik nama admin...">
+            </div>
+            <div class="flex gap-2">
+              <button type="button" id="btn-cancel-payslip"
+                class="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">Batal</button>
+              <button type="button" id="btn-confirm-payslip"
+                class="flex-1 rounded-xl bg-violet-600 py-2.5 text-xs font-bold text-white">Konfirmasi Lunas</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KALKULASI HPP -->
+      <section id="screen-hpp" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-hpp"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Kalkulasi HPP</h2>
+            <p class="text-xs text-slate-400">Tutup WO & Hitung Modal Pokok</p>
+          </div>
+        </div>
+        <form id="form-hpp" class="space-y-4">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <p class="text-xs text-slate-500">Sistem otomatis menjumlahkan Cost Bahan terkirim + Upah Jahit QC lalu
+              membaginya dengan total Qty Lolos QC.</p>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Work
+                Order Aktif</label>
+              <select id="hpp-wo"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold bg-white"
+                required></select>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Biaya Overhead
+                Tambahan (Opsional, Rp)</label>
+              <input id="hpp-overhead" type="number" min="0" value="0"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold" placeholder="0">
+            </div>
+          </div>
+          <button id="btn-submit-hpp" type="submit"
+            class="w-full rounded-2xl bg-slate-900 p-4 text-sm font-bold text-white shadow-lg">Kalkulasi & Tutup
+            WO</button>
+        </form>
+      </section>
     </main>
   </div>
 
@@ -570,36 +784,47 @@
     aria-live="polite"></div>
 
   <script>
-    // Keep this endpoint equal to the deployed Apps Script Web App URL.
-    // ===== KONFIGURASI (ubah HANYA di sini) =====
-    // Isi dengan URL Web App Apps Script milik salinan/development.
-    // Jangan isi URL production sebelum owner mengizinkan cutover.
+    // ===== KONFIGURASI =====
     const APP_CONFIG = { GAS_URL: 'https://script.google.com/macros/s/AKfycbxgR2xo-4FYI4e5KfLYBH-u7SGJ9CS8Xp19b8JRvENilP0Beon-XYYlAV5n7kTd6Rx6wA/exec' };
     const GAS_URL = APP_CONFIG.GAS_URL;
     function isGasConfigured() { return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(GAS_URL); }
-    // =============================================
 
     let LOCATIONS = [];
+    let TARIFS = [];
+    let activeQcReportId = null;
+    let pendingPayTeam = null;
 
-    const ACTIVITIES = {
+    const ACTIVITIES_GUDANG = {
       masuk: { label: 'Barang Masuk', value: 'Masuk', color: 'emerald', fields: ['to'], labelTo: 'Lokasi tujuan', qty: 'Stok masuk', min: 1 },
       keluar: { label: 'Barang Keluar', value: 'Keluar', color: 'rose', fields: ['from'], labelFrom: 'Lokasi asal', qty: 'Stok keluar', min: 1 },
       mutasi: { label: 'Pindah Lokasi', value: 'Mutasi', color: 'sky', fields: ['from', 'to'], labelFrom: 'Lokasi asal', labelTo: 'Lokasi tujuan', qty: 'Jumlah dipindahkan', min: 1 },
       opname: { label: 'Stock Opname', value: 'Opname', color: 'amber', fields: ['to'], labelTo: 'Lokasi opname', qty: 'Jumlah fisik', min: 0 },
       kelola: { label: 'Kelola Data', value: 'Kelola', color: 'slate', fields: [] },
-      produk: { label: 'Produk Baru', value: 'ProdukBaru', color: 'violet', fields: [] },
-      bahan: { label: 'Master Bahan', value: 'Bahan', color: 'indigo', fields: [] },
-      wojahit: { label: 'WO Jahit', value: 'WoJahit', color: 'rose', fields: [] }
+      produk: { label: 'Produk Baru', value: 'ProdukBaru', color: 'violet', fields: [] }
     };
+
+    const ACTIVITIES_PRODUKSI = {
+      bahan: { label: 'Master Bahan', color: 'indigo', desc: 'Modal & satuan kain' },
+      wojahit: { label: 'WO Jahit', color: 'rose', desc: 'Buat Work Order' },
+      kirim: { label: 'Kirim Bahan', color: 'sky', desc: 'Surat jalan ke jahit' },
+      qc: { label: 'Terima & QC', color: 'emerald', desc: 'Cek hasil & upah' },
+      tarif: { label: 'Master Tarif', color: 'indigo', desc: 'Upah per model' },
+      upah: { label: 'Rekap Upah', color: 'violet', desc: 'Slip gaji penjahit' },
+      hpp: { label: 'Tutup WO & HPP', color: 'slate', desc: 'Hitung modal pokok' }
+    };
+
+    const ALL_ACTIVITIES = Object.assign({}, ACTIVITIES_GUDANG, ACTIVITIES_PRODUKSI);
+
     const COLOR_STYLE = {
       emerald: ['bg-emerald-50', 'text-emerald-700', 'bg-emerald-500', 'border-emerald-100'],
       rose: ['bg-rose-50', 'text-rose-700', 'bg-rose-500', 'border-rose-100'],
       sky: ['bg-sky-50', 'text-sky-700', 'bg-sky-500', 'border-sky-100'],
       amber: ['bg-amber-50', 'text-amber-700', 'bg-amber-500', 'border-amber-100'],
-      slate: ['bg-slate-50', 'text-slate-700', 'bg-slate-600', 'border-slate-200'],
+      slate: ['bg-slate-50', 'text-slate-700', 'bg-slate-700', 'border-slate-200'],
       violet: ['bg-violet-50', 'text-violet-700', 'bg-violet-500', 'border-violet-100'],
       indigo: ['bg-indigo-50', 'text-indigo-700', 'bg-indigo-500', 'border-indigo-100']
     };
+
     const ACTIVITY_ICONS = {
       masuk: '<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M5 18v3h14v-3"/>',
       keluar: '<path d="M12 21V9m-5 5 5-5 5 5"/><path d="M5 6V3h14v3"/>',
@@ -608,15 +833,19 @@
       kelola: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
       produk: '<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="9"/>',
       bahan: '<path d="M12 2L2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
-      wojahit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>'
+      wojahit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+      kirim: '<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+      qc: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+      tarif: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+      upah: '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+      hpp: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
     };
+
     const $ = id => document.getElementById(id);
     const state = {
       key: null, barcode: '', product: null, selectedAttributes: {}, selectedVariant: null,
       locationFrom: '', locationTo: '', trxId: null, scanner: null, scannerRunning: false, scanLocked: false,
-      formMode: '', matrix: [], addVariantsMode: false,
-      opnameSession: null,
-      pendingApproveSession: null
+      formMode: '', matrix: [], addVariantsMode: false, opnameSession: null, pendingApproveSession: null
     };
 
     function toast(message, type = 'success') {
@@ -626,11 +855,11 @@
       mark.className = `flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-400'}`;
       mark.textContent = type === 'success' ? '✓' : '×';
       const text = document.createElement('span'); text.className = 'flex-1'; text.textContent = message;
-      el.append(mark, text); $('toast-root').appendChild(el); setTimeout(() => el.remove(), 3500);
+      el.append(mark, text); $('toast-root').appendChild(el); setTimeout(() => el.remove(), 3800);
     }
 
     async function apiPost(payload) {
-      if (!isGasConfigured()) throw new Error('URL Apps Script belum diatur. Isi APP_CONFIG.GAS_URL di index.html.');
+      if (!isGasConfigured()) throw new Error('URL Apps Script belum diatur.');
       const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
       const json = await response.json();
       if (!response.ok) throw new Error('Server HTTP ' + response.status);
@@ -643,52 +872,73 @@
         if (res.success && res.data && Array.isArray(res.data.locations) && res.data.locations.length > 0) {
           LOCATIONS = res.data.locations;
         }
-      } catch (e) {
-        console.warn('Gagal memuat lokasi dinamis:', e);
-      }
-      if (LOCATIONS.length === 0) {
-        LOCATIONS = [{ value: 'Rak Utama', label: 'Rak Utama', kind: 'warehouse' }];
-      }
+      } catch (e) { console.warn('Gagal memuat lokasi:', e); }
+      if (LOCATIONS.length === 0) LOCATIONS = [{ value: 'Rak Utama', label: 'Rak Utama', kind: 'warehouse' }];
     }
 
     function renderActivities() {
-      $('menu-count-badge').textContent = Object.keys(ACTIVITIES).length + ' MENU';
-      Object.entries(ACTIVITIES).forEach(([key, activity]) => {
+      const totalMenu = Object.keys(ACTIVITIES_GUDANG).length + Object.keys(ACTIVITIES_PRODUKSI).length;
+      $('menu-count-badge').textContent = totalMenu + ' MENU';
+
+      Object.entries(ACTIVITIES_GUDANG).forEach(([key, activity]) => {
         const style = COLOR_STYLE[activity.color];
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `flex ${key === 'kelola' || key === 'produk' ? 'col-span-2 flex-row items-center' : 'flex-col'} gap-3 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
-        const icon = document.createElement('span'); icon.className = `flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white`;
-        icon.innerHTML = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>`;
-        const label = document.createElement('span'); label.className = `text-sm font-bold ${style[1]}`; label.textContent = activity.label;
-        const desc = document.createElement('span'); desc.className = `text-[11px] ${style[1]} opacity-70`;
-        desc.textContent = key === 'kelola' ? 'Ubah produk dan variasi' : key === 'produk' ? 'Daftarkan barcode baru' : 'Scan dan catat stok';
-        if (key === 'bahan') desc.textContent = 'Daftarkan jenis bahan baru';
-        if (key === 'wojahit') desc.textContent = 'Buat WO & Target WIP';
-        const wrapper = document.createElement('span'); wrapper.className = 'flex flex-col gap-1'; wrapper.append(label, desc);
-        button.append(icon, wrapper);
+        button.className = `flex flex-col gap-2.5 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
+        button.innerHTML = `
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>
+          </span>
+          <span class="flex flex-col gap-0.5">
+            <span class="text-sm font-bold ${style[1]}">${activity.label}</span>
+            <span class="text-[11px] ${style[1]} opacity-70">${key === 'kelola' ? 'Ubah produk & variasi' : key === 'produk' ? 'Daftarkan barcode baru' : 'Scan & catat stok'}</span>
+          </span>`;
         button.addEventListener('click', () => {
-          if (key === 'opname') {
-            openOpnameSessions();
-          } else if (key === 'bahan') {
-            openBahanForm();
-          } else if (key === 'wojahit') {
-            openWoJahitForm();
-          } else {
-            startScan(key, true);
-          }
+          if (key === 'opname') openOpnameSessions();
+          else startScan(key, true);
         });
         $('activity-list').appendChild(button);
+      });
+
+      Object.entries(ACTIVITIES_PRODUKSI).forEach(([key, activity]) => {
+        const style = COLOR_STYLE[activity.color];
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `flex ${key === 'hpp' ? 'col-span-2 flex-row items-center' : 'flex-col'} gap-2.5 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
+        button.innerHTML = `
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>
+          </span>
+          <span class="flex flex-col gap-0.5">
+            <span class="text-sm font-bold ${style[1]}">${activity.label}</span>
+            <span class="text-[11px] ${style[1]} opacity-70">${activity.desc}</span>
+          </span>`;
+        button.addEventListener('click', () => {
+          if (key === 'bahan') openBahanForm();
+          else if (key === 'wojahit') openWoJahitForm();
+          else if (key === 'kirim') openKirimBahanForm();
+          else openFinanceModul(key);
+        });
+        $('activity-list-produksi').appendChild(button);
       });
     }
 
     function showScreen(screen, pushHistory = true) {
-      ['home', 'scan', 'form', 'opname-sessions', 'bahan', 'wo-jahit'].forEach(name => {
-        const el = $('screen-' + name); const active = name === screen;
+      ['home', 'scan', 'form', 'opname-sessions', 'bahan', 'wo-jahit', 'kirim-bahan', 'qc', 'tarif', 'upah', 'hpp'].forEach(name => {
+        const el = $('screen-' + name);
+        if (!el) return;
+        const active = name === screen;
         el.classList.toggle('hidden', !active);
-        if (active) { el.classList.remove('screen-enter'); void el.offsetWidth; el.classList.add('screen-enter'); }
+        if (active && screen !== 'home' && screen !== 'scan') {
+          el.classList.remove('screen-enter'); void el.offsetWidth; el.classList.add('screen-enter');
+        }
       });
-      const labels = { home: 'Pilih aktivitas hari ini', scan: 'Scan barcode produk', form: 'Input data gudang', 'opname-sessions': 'Manajemen Sesi Opname', 'bahan': 'Master Bahan Baru', 'wo-jahit': 'Work Order Jahit' };
+      const labels = {
+        home: 'Pilih aktivitas hari ini', scan: 'Scan barcode produk', form: 'Input data gudang',
+        'opname-sessions': 'Manajemen Sesi Opname', bahan: 'Master Bahan Baru', 'wo-jahit': 'Work Order Jahit',
+        'kirim-bahan': 'Pengiriman Bahan ke Jahit', qc: 'Terima & QC Hasil Jahit', tarif: 'Master Tarif Upah',
+        upah: 'Rekap Upah & Slip Gaji', hpp: 'Kalkulasi HPP Produksi'
+      };
       $('header-label').textContent = labels[screen] || '';
       if (pushHistory) history.pushState({ app: true, screen }, '', '#' + screen);
     }
@@ -728,19 +978,15 @@
       $('opname-session-list').innerHTML = '<p class="text-center text-xs text-slate-400 py-4">Memuat sesi aktif...</p>';
       $('create-session-form').classList.add('hidden');
       $('approve-session-form').classList.add('hidden');
-
       try {
         const res = await apiPost({ action: 'GET_OPNAME_SESSIONS' });
         if (!res.success) throw new Error(res.message);
         renderOpnameSessions(res.data.sessions);
-      } catch (e) {
-        $('opname-session-list').innerHTML = `<p class="text-center text-xs text-rose-500 py-4">${e.message}</p>`;
-      }
+      } catch (e) { $('opname-session-list').innerHTML = `<p class="text-center text-xs text-rose-500 py-4">${e.message}</p>`; }
     }
 
     function renderOpnameSessions(sessions) {
-      const list = $('opname-session-list');
-      list.innerHTML = '';
+      const list = $('opname-session-list'); list.innerHTML = '';
       if (!sessions || sessions.length === 0) {
         list.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 p-6 text-center"><p class="text-sm font-medium text-slate-600">Belum ada sesi aktif</p><p class="mt-1 text-xs text-slate-400">Buat sesi baru untuk mulai menghitung stok.</p></div>';
         return;
@@ -758,229 +1004,307 @@
             <span class="bg-amber-200 text-amber-800 text-[9px] font-bold px-2 py-1 rounded-full">Aktif</span>
           </div>
           <div class="flex gap-2">
-            <button data-scan class="flex-1 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-700">Mulai Hitung</button>
-            <button data-approve class="flex-1 rounded-xl bg-white border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-100">Setujui (Selesai)</button>
-          </div>
-        `;
-        card.querySelector('[data-scan]').addEventListener('click', () => {
-          state.opnameSession = sesi;
-          startScan('opname', true);
-        });
+            <button data-scan class="flex-1 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white shadow-sm">Mulai Hitung</button>
+            <button data-approve class="flex-1 rounded-xl bg-white border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700">Setujui (Selesai)</button>
+          </div>`;
+        card.querySelector('[data-scan]').addEventListener('click', () => { state.opnameSession = sesi; startScan('opname', true); });
         card.querySelector('[data-approve]').addEventListener('click', () => {
           state.pendingApproveSession = sesi;
           $('create-session-form').classList.add('hidden');
           $('approve-session-form').classList.remove('hidden');
           $('approve-session-desc').textContent = `Selesaikan sesi "${sesi.nama_sesi}" (${sesi.lokasi})? Saldo stok sistem akan diperbarui sesuai hasil hitung fisik.`;
           $('approve-session-admin').value = '';
-          $('approve-session-admin').focus();
         });
         list.appendChild(card);
       });
     }
 
-    $('btn-cancel-approve').addEventListener('click', () => {
-      state.pendingApproveSession = null;
-      $('approve-session-form').classList.add('hidden');
-    });
-
+    $('btn-cancel-approve').addEventListener('click', () => { state.pendingApproveSession = null; $('approve-session-form').classList.add('hidden'); });
     $('btn-confirm-approve').addEventListener('click', async () => {
       if (!state.pendingApproveSession) return;
       const pelapor = $('approve-session-admin').value.trim();
       if (!pelapor) return toast('Nama admin/penyetuju wajib diisi.', 'error');
-
       const btn = $('btn-confirm-approve'); btn.disabled = true; btn.textContent = 'Memproses...';
       try {
-        const res = await apiPost({
-          action: 'APPROVE_OPNAME_SESSION',
-          session_id: state.pendingApproveSession.session_id,
-          nama_pelapor: pelapor
-        });
+        const res = await apiPost({ action: 'APPROVE_OPNAME_SESSION', session_id: state.pendingApproveSession.session_id, nama_pelapor: pelapor });
         if (!res.success) throw new Error(res.message);
-        toast(res.message);
-        state.pendingApproveSession = null;
-        $('approve-session-form').classList.add('hidden');
-        openOpnameSessions();
-      } catch (e) {
-        toast(e.message, 'error');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Konfirmasi Setujui';
-      }
+        toast(res.message); state.pendingApproveSession = null; $('approve-session-form').classList.add('hidden'); openOpnameSessions();
+      } catch (e) { toast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Konfirmasi Setujui'; }
     });
 
     $('btn-back-opname').addEventListener('click', navigateBack);
     $('btn-show-create-session').addEventListener('click', async () => {
       $('approve-session-form').classList.add('hidden');
-      const form = $('create-session-form');
-      form.classList.remove('hidden');
-      $('new-session-name').value = '';
-      $('new-session-admin').value = '';
-
+      $('create-session-form').classList.remove('hidden');
+      $('new-session-name').value = ''; $('new-session-admin').value = '';
       await loadLocations();
-      const select = $('new-session-location');
-      select.innerHTML = '';
-      LOCATIONS.forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l.value; opt.textContent = l.label;
-        select.appendChild(opt);
-      });
+      const select = $('new-session-location'); select.innerHTML = '';
+      LOCATIONS.forEach(l => { const opt = document.createElement('option'); opt.value = l.value; opt.textContent = l.label; select.appendChild(opt); });
     });
     $('btn-cancel-session').addEventListener('click', () => $('create-session-form').classList.add('hidden'));
-
     $('btn-submit-session').addEventListener('click', async () => {
-      const name = $('new-session-name').value.trim();
-      const loc = $('new-session-location').value;
-      const admin = $('new-session-admin').value.trim();
+      const name = $('new-session-name').value.trim(), loc = $('new-session-location').value, admin = $('new-session-admin').value.trim();
       if (!name || !loc || !admin) return toast('Semua kolom wajib diisi.', 'error');
-
       const btn = $('btn-submit-session'); btn.disabled = true; btn.textContent = 'Membuat...';
       try {
         const res = await apiPost({ action: 'CREATE_OPNAME_SESSION', nama_sesi: name, lokasi: loc, nama_pelapor: admin });
         if (!res.success) throw new Error(res.message);
-        toast('Sesi berhasil dibuat.');
-        $('create-session-form').classList.add('hidden');
-        openOpnameSessions();
-      } catch (e) {
-        toast(e.message, 'error');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Buat Sesi';
-      }
+        toast('Sesi berhasil dibuat.'); $('create-session-form').classList.add('hidden'); openOpnameSessions();
+      } catch (e) { toast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Buat Sesi'; }
     });
 
     // --- LOGIC MASTER BAHAN ---
     function openBahanForm() {
-      state.key = 'bahan';
-      showScreen('bahan', true);
-      $('bahan-kode').value = '';
-      $('bahan-nama').value = '';
-      $('bahan-satuan').value = 'kg';
-      $('bahan-cost').value = '';
+      state.key = 'bahan'; showScreen('bahan', true);
+      $('bahan-kode').value = ''; $('bahan-nama').value = ''; $('bahan-satuan').value = 'kg'; $('bahan-cost').value = '';
     }
-
     $('form-bahan').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const kode = $('bahan-kode').value.trim();
-      const nama = $('bahan-nama').value.trim();
-      const satuan = $('bahan-satuan').value;
-      const cost = $('bahan-cost').value;
-
+      const kode = $('bahan-kode').value.trim(), nama = $('bahan-nama').value.trim(), satuan = $('bahan-satuan').value, cost = $('bahan-cost').value;
       if (!kode || !nama) return toast('Kode dan nama bahan wajib diisi.', 'error');
-
       const btn = $('btn-submit-bahan'); btn.disabled = true; btn.textContent = 'Menyimpan...';
       try {
         const res = await apiPost({ action: 'CREATE_BAHAN', kode_bahan: kode, nama_bahan: nama, satuan: satuan, estimasi_cost: cost });
         if (!res.success) throw new Error(res.message);
-        toast('Bahan berhasil disimpan.');
-        navigateBack();
-      } catch (err) {
-        toast(err.message, 'error');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Simpan Bahan';
-      }
+        toast(res.message); navigateBack();
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Simpan Bahan'; }
     });
 
     // --- LOGIC WO JAHIT ---
     async function openWoJahitForm() {
-      state.key = 'wojahit';
-      showScreen('wo-jahit', true);
-
-      $('wo-tim').value = '';
-      $('wo-target-date').value = '';
-      $('wo-catatan').value = '';
-      $('wo-pelapor').value = '';
-
+      state.key = 'wojahit'; showScreen('wo-jahit', true);
+      $('wo-tim').value = ''; $('wo-target-date').value = ''; $('wo-catatan').value = ''; $('wo-pelapor').value = '';
       await loadLocations();
-      const selAsal = $('wo-lokasi-asal'); const selTujuan = $('wo-lokasi-tujuan');
+      const selAsal = $('wo-lokasi-asal'), selTujuan = $('wo-lokasi-tujuan');
       selAsal.innerHTML = ''; selTujuan.innerHTML = '';
       LOCATIONS.forEach(l => {
         const optA = document.createElement('option'); optA.value = l.value; optA.textContent = l.label;
         const optB = document.createElement('option'); optB.value = l.value; optB.textContent = l.label;
         selAsal.appendChild(optA); selTujuan.appendChild(optB);
       });
-
-      $('wo-item-list').innerHTML = '';
-      addWoItemRow();
+      $('wo-item-list').innerHTML = ''; addWoItemRow();
     }
-
     function addWoItemRow() {
-      const list = $('wo-item-list');
-      const row = document.createElement('div');
+      const list = $('wo-item-list'), row = document.createElement('div');
       row.className = 'wo-item-row rounded-xl border border-slate-200 p-3 mb-2 bg-slate-50 relative';
       row.innerHTML = `
         <button type="button" class="absolute top-2 right-2 text-rose-500 font-bold text-xs" onclick="this.parentElement.remove()">X</button>
         <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Model / Warna / Ukuran WIP</label>
         <input type="text" data-desc class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-2" placeholder="Cth: Kaos Polos Hitam XL">
         <div class="flex gap-2">
-          <div class="flex-1">
-            <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Qty Target</label>
-            <input type="number" data-qty class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="0">
-          </div>
-          <div class="flex-1">
-            <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan</label>
-            <input type="text" data-note class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="-">
-          </div>
-        </div>
-      `;
+          <div class="flex-1"><label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Qty Target</label><input type="number" data-qty class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="0"></div>
+          <div class="flex-1"><label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan</label><input type="text" data-note class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="-"></div>
+        </div>`;
       list.appendChild(row);
     }
-
     $('btn-add-wo-item').addEventListener('click', addWoItemRow);
-
     $('form-wo-jahit').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const tim = $('wo-tim').value.trim();
-      const asal = $('wo-lokasi-asal').value;
-      const tujuan = $('wo-lokasi-tujuan').value;
-      const tgl = $('wo-target-date').value;
-      const catatan = $('wo-catatan').value.trim();
-      const pelapor = $('wo-pelapor').value.trim();
-
+      const tim = $('wo-tim').value.trim(), asal = $('wo-lokasi-asal').value, tujuan = $('wo-lokasi-tujuan').value, tgl = $('wo-target-date').value, catatan = $('wo-catatan').value.trim(), pelapor = $('wo-pelapor').value.trim();
       if (!tim || !pelapor) return toast('Tim Penjahit dan Nama Pembuat wajib diisi.', 'error');
-
-      const itemRows = [...document.querySelectorAll('.wo-item-row')];
-      const items = itemRows.map(r => ({
+      const items = [...document.querySelectorAll('.wo-item-row')].map(r => ({
         deskripsi: r.querySelector('[data-desc]').value.trim(),
         target_qty: parseInt(r.querySelector('[data-qty]').value) || 0,
         catatan: r.querySelector('[data-note]').value.trim()
       })).filter(i => i.deskripsi && i.target_qty > 0);
-
       if (items.length === 0) return toast('Minimal 1 item dengan deskripsi dan qty valid.', 'error');
-
       const btn = $('btn-submit-wo'); btn.disabled = true; btn.textContent = 'Memproses...';
       try {
-        const res = await apiPost({
-          action: 'CREATE_WO_JAHIT',
-          tim_label: tim,
-          lokasi_asal_bahan: asal,
-          lokasi_tujuan: tujuan,
-          tanggal_target: tgl,
-          catatan: catatan,
-          nama_pelapor: pelapor,
-          items: items
-        });
+        const res = await apiPost({ action: 'CREATE_WO_JAHIT', tim_label: tim, lokasi_asal_bahan: asal, lokasi_tujuan: tujuan, tanggal_target: tgl, catatan: catatan, nama_pelapor: pelapor, items: items });
         if (!res.success) throw new Error(res.message);
-        toast('Work Order Jahit dibuat: ' + res.data.nomor_wo);
-        navigateBack();
-      } catch (err) {
-        toast(err.message, 'error');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Buat Work Order';
-      }
+        toast('Work Order Jahit dibuat: ' + res.data.nomor_wo); navigateBack();
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Buat Work Order'; }
     });
 
+    // --- LOGIC KIRIM BAHAN ---
+    async function openKirimBahanForm() {
+      state.key = 'kirim'; showScreen('kirim-bahan', true);
+      $('kirim-result-card').classList.add('hidden');
+      $('kirim-qty').value = ''; $('kirim-kurir').value = '';
+      $('kirim-wo').innerHTML = '<option value="">Memuat WO...</option>';
+      $('kirim-kode-bahan').innerHTML = '<option value="">Memuat Bahan...</option>';
+      try {
+        const [woRes, bahanRes] = await Promise.all([apiPost({ action: 'GET_ACTIVE_WO' }), apiPost({ action: 'GET_BAHAN_LIST' })]);
+        const selWo = $('kirim-wo'); selWo.innerHTML = '<option value="">-- Pilih WO Aktif --</option>';
+        (woRes.data?.wo_list || []).forEach(w => {
+          const opt = document.createElement('option'); opt.value = w.wo_id; opt.textContent = `${w.nomor_wo} · ${w.tim_label}`; selWo.appendChild(opt);
+        });
+        const selB = $('kirim-kode-bahan'); selB.innerHTML = '<option value="">-- Pilih Jenis Bahan --</option>';
+        (bahanRes.data?.bahan_list || []).forEach(b => {
+          const opt = document.createElement('option'); opt.value = b.kode_bahan; opt.textContent = `${b.kode_bahan} - ${b.nama_bahan} (${b.satuan})`; selB.appendChild(opt);
+        });
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    $('form-kirim-bahan').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('btn-submit-kirim-bahan'); btn.disabled = true; btn.textContent = 'Mencatat...';
+      try {
+        const res = await apiPost({
+          action: 'CREATE_DELIVERY_BAHAN',
+          wo_id: $('kirim-wo').value,
+          kode_bahan: $('kirim-kode-bahan').value,
+          qty_rencana: $('kirim-qty').value,
+          nama_pelapor: $('kirim-kurir').value.trim()
+        });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message);
+        $('kirim-result-id').textContent = res.data.delivery_id;
+        $('kirim-result-card').classList.remove('hidden');
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Catat Pengiriman Bahan'; }
+    });
+
+    // --- LOGIC FINANCE, QC, TARIF, UPAH, HPP ---
+    async function openFinanceModul(key) {
+      state.key = key;
+      if (key === 'tarif') {
+        $('tarif-kode').value = ''; $('tarif-desc').value = ''; $('tarif-upah').value = '';
+        showScreen('tarif', true);
+      } else if (key === 'hpp') {
+        showScreen('hpp', true);
+        $('hpp-overhead').value = '0';
+        const sel = $('hpp-wo'); sel.innerHTML = '<option value="">Memuat daftar WO...</option>';
+        try {
+          const res = await apiPost({ action: 'GET_ACTIVE_WO' });
+          sel.innerHTML = '<option value="">-- Pilih WO untuk Ditutup --</option>';
+          (res.data?.wo_list || []).forEach(w => {
+            const opt = document.createElement('option'); opt.value = w.nomor_wo; opt.textContent = `${w.nomor_wo} · ${w.tim_label} (${w.status})`; sel.appendChild(opt);
+          });
+        } catch (e) { sel.innerHTML = '<option value="">Gagal memuat WO</option>'; }
+      } else if (key === 'qc') {
+        showScreen('qc', true);
+        $('qc-list-wrap').classList.remove('hidden'); $('form-qc').classList.add('hidden');
+        $('qc-loading').textContent = 'Memuat antrean QC...';
+        try {
+          const res = await apiPost({ action: 'GET_DATA_FOR_QC' });
+          if (res.success) { TARIFS = res.data.tarifs; renderQcList(res.data.pending_reports); }
+          else throw new Error(res.message);
+        } catch (e) { $('qc-loading').textContent = e.message; }
+      } else if (key === 'upah') {
+        showScreen('upah', true);
+        $('pay-slip-modal').classList.add('hidden');
+        $('upah-list-wrap').innerHTML = ''; $('upah-loading').classList.remove('hidden');
+        try {
+          const res = await apiPost({ action: 'GET_UNPAID_UPAH' });
+          if (res.success) renderUpahList(res.data.unpaid);
+          else throw new Error(res.message);
+        } catch (e) { $('upah-loading').textContent = e.message; }
+      }
+    }
+
+    function renderQcList(reports) {
+      const wrap = $('qc-list-wrap'); wrap.innerHTML = '';
+      if (!reports.length) return wrap.innerHTML = '<p class="text-center text-xs text-slate-500 py-4">Semua laporan jahitan sudah di-QC.</p>';
+      reports.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm cursor-pointer active:scale-95 transition';
+        card.innerHTML = `<div class="flex justify-between items-center"><div><p class="font-bold text-emerald-900 text-sm">${r.Report_ID}</p><p class="text-xs text-emerald-700">${r.WO_ID} · ${r.Nama_Penjahit} (${r.Tim_Penjahit})</p></div><div class="text-right"><p class="text-xs font-bold text-emerald-700">Bagus: ${r.Qty_Bagus}</p><p class="text-[10px] text-rose-600">Cacat: ${r.Qty_Cacat}</p></div></div>`;
+        card.onclick = () => openQcForm(r);
+        wrap.appendChild(card);
+      });
+    }
+
+    function openQcForm(r) {
+      activeQcReportId = r.Report_ID;
+      $('qc-list-wrap').classList.add('hidden'); $('form-qc').classList.remove('hidden');
+      $('qc-rep-id').textContent = r.Report_ID; $('qc-wo-id').textContent = `${r.WO_ID} · Penjahit: ${r.Nama_Penjahit} (${r.Tim_Penjahit})`;
+      $('qc-lolos').value = r.Qty_Bagus; $('qc-gagal').value = r.Qty_Cacat; $('qc-nama').value = '';
+      const sel = $('qc-tarif'); sel.innerHTML = '<option value="">-- Pilih Tarif Upah --</option>';
+      TARIFS.forEach(t => {
+        const opt = document.createElement('option'); opt.value = t.ID_Tarif; opt.textContent = `${t.Kode_Model_WIP} - ${t.Deskripsi_Model} (Rp ${Number(t.Upah_Per_Pcs).toLocaleString('id-ID')})`; sel.appendChild(opt);
+      });
+      state.selectedVariant = null; state.barcode = ''; $('qc-wip-detail').classList.add('hidden');
+    }
+
+    $('btn-scan-wip').onclick = () => { state.key = 'scan-qc'; showScreen('scan', false); startCamera(); };
+
+    $('form-qc').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!state.selectedVariant) return toast('Harap scan produk WIP dan pilih variasi terlebih dahulu!', 'error');
+      const btn = $('btn-submit-qc'); btn.disabled = true; btn.textContent = 'Memproses...';
+      try {
+        const res = await apiPost({
+          action: 'SUBMIT_QC_RECEIPT',
+          transaction_id: newTransactionId(),
+          report_id: activeQcReportId,
+          tarif_id: $('qc-tarif').value,
+          variant_id: state.selectedVariant.id,
+          barcode: state.barcode,
+          qty_lolos: $('qc-lolos').value,
+          qty_gagal: $('qc-gagal').value,
+          nama_qc: $('qc-nama').value.trim()
+        });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message); showScreen('home', false);
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Simpan & Hitung Upah'; }
+    });
+
+    $('form-tarif').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('btn-submit-tarif'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const res = await apiPost({ action: 'CREATE_TARIF', kode_model: $('tarif-kode').value.trim(), deskripsi: $('tarif-desc').value.trim(), upah: $('tarif-upah').value });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message); navigateBack();
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Simpan Tarif'; }
+    });
+
+    function renderUpahList(list) {
+      $('upah-loading').classList.add('hidden');
+      const wrap = $('upah-list-wrap'); wrap.innerHTML = '';
+      if (!list.length) return wrap.innerHTML = '<p class="text-center text-xs text-slate-500 py-4">Tidak ada tagihan upah tertunda.</p>';
+      list.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm';
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-3">
+            <div><p class="font-bold text-violet-900 text-sm">${item.tim}</p><p class="text-xs text-violet-700">${item.count} Laporan QC · ${item.total_qty} pcs</p></div>
+            <div class="text-right"><p class="text-[10px] font-bold text-violet-600 uppercase">Total Tagihan</p><p class="text-base font-bold text-violet-900">Rp ${item.total_upah.toLocaleString('id-ID')}</p></div>
+          </div>
+          <button type="button" class="w-full bg-violet-600 text-white font-bold rounded-xl py-3 text-sm shadow-sm btn-pay">Buat Slip & Lunasi</button>`;
+        card.querySelector('.btn-pay').onclick = () => {
+          pendingPayTeam = item;
+          $('pay-slip-desc').textContent = `Lunasi tagihan Tim "${item.tim}" sebesar Rp ${item.total_upah.toLocaleString('id-ID')} (${item.total_qty} pcs)?`;
+          $('pay-slip-admin').value = '';
+          $('pay-slip-modal').classList.remove('hidden');
+          $('pay-slip-admin').focus();
+        };
+        wrap.appendChild(card);
+      });
+    }
+
+    $('btn-cancel-payslip').onclick = () => { pendingPayTeam = null; $('pay-slip-modal').classList.add('hidden'); };
+    $('btn-confirm-payslip').onclick = async () => {
+      if (!pendingPayTeam) return;
+      const namaAdmin = $('pay-slip-admin').value.trim();
+      if (!namaAdmin) return toast('Nama admin pembayar wajib diisi.', 'error');
+      const btn = $('btn-confirm-payslip'); btn.disabled = true; btn.textContent = 'Memproses...';
+      try {
+        const res = await apiPost({ action: 'GENERATE_PAY_SLIP', tim_penjahit: pendingPayTeam.tim, nama_admin: namaAdmin });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message); pendingPayTeam = null; $('pay-slip-modal').classList.add('hidden'); openFinanceModul('upah');
+      } catch (e) { toast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Konfirmasi Lunas'; }
+    };
+
+    $('form-hpp').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('btn-submit-hpp'); btn.disabled = true; btn.textContent = 'Mengkalkulasi...';
+      try {
+        const res = await apiPost({ action: 'CALCULATE_HPP', nomor_wo: $('hpp-wo').value, biaya_overhead: $('hpp-overhead').value });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message); navigateBack();
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Kalkulasi & Tutup WO'; }
+    });
+
+    // --- SCANNER & PRODUK / TRANSAKSI ---
     async function startScan(key, pushHistory = true) {
       state.key = key; state.barcode = ''; state.product = null; state.selectedVariant = null; state.selectedAttributes = {}; state.trxId = null; state.addVariantsMode = false;
-
-      $('scan-title').textContent = ACTIVITIES[key].label;
+      $('scan-title').textContent = ALL_ACTIVITIES[key]?.label || 'Scan Barcode';
       $('scan-subtitle').textContent = key === 'produk' ? 'Scan QR/barcode baru yang belum terdaftar' : 'Arahkan kamera ke QR/barcode produk';
       $('manual-form').classList.add('hidden'); $('manual-form').classList.remove('flex'); $('manual-barcode').value = '';
       $('btn-torch').classList.add('hidden');
-
       const isOpname = key === 'opname';
       $('scan-opname-indicator').classList.toggle('hidden', !isOpname);
-      if (isOpname && state.opnameSession) {
-        $('scan-opname-info').textContent = state.opnameSession.nama_sesi + ' (' + state.opnameSession.lokasi + ')';
-      }
-
+      if (isOpname && state.opnameSession) $('scan-opname-info').textContent = state.opnameSession.nama_sesi + ' (' + state.opnameSession.lokasi + ')';
       await stopScanner(); showScreen('scan', pushHistory); await startCamera();
     }
 
@@ -994,14 +1318,8 @@
           if (state.scanLocked) return; state.scanLocked = true; playBeep(); await stopScanner(); await processBarcode(decoded.trim());
         }, () => { });
         state.scannerRunning = true;
-        try {
-          const capabilities = instance.getRunningTrackCameraCapabilities();
-          if (capabilities && capabilities.torchFeature && capabilities.torchFeature().isSupported()) {
-            $('btn-torch').classList.remove('hidden'); $('btn-torch').onclick = async () => { const next = !state.torchOn; state.torchOn = next; try { await instance.applyVideoConstraints({ advanced: [{ torch: next }] }); } catch (e) { toast('Lampu tidak dapat diubah.', 'error'); } };
-          }
-        } catch (e) { }
       } catch (error) {
-        console.error(error); $('manual-form').classList.remove('hidden'); $('manual-form').classList.add('flex'); toast('Kamera tidak dapat dibuka. Gunakan input manual.', 'error');
+        $('manual-form').classList.remove('hidden'); $('manual-form').classList.add('flex'); toast('Kamera tidak dapat dibuka. Gunakan input manual.', 'error');
       }
     }
 
@@ -1017,43 +1335,56 @@
         const result = await apiPost({ action: 'GET_PRODUCT', barcode, include_inactive: state.key === 'kelola' });
         if (!result.success) { toast(result.message || 'Produk tidak ditemukan.', 'error'); return startCamera(); }
         state.product = result.data;
-        if (state.key === 'kelola') openManageProductForm(result.data);
-        else openTransactionForm(result.data);
-      } catch (error) {
-        console.error(error); toast('Tidak dapat menghubungi server. Periksa koneksi.', 'error'); startCamera();
-      }
+        if (state.key === 'scan-qc') {
+          showScreen('qc', false);
+          $('qc-wip-detail').classList.remove('hidden');
+          $('qc-wip-prod-name').textContent = result.data.nama + ' (' + result.data.barcode + ')';
+          renderVariantSelectForQC(result.data);
+        } else if (state.key === 'kelola') {
+          openManageProductForm(result.data);
+        } else {
+          openTransactionForm(result.data);
+        }
+      } catch (error) { toast('Tidak dapat menghubungi server. Periksa koneksi.', 'error'); startCamera(); }
+    }
+
+    function renderVariantSelectForQC(product) {
+      const root = $('qc-wip-variants'); root.innerHTML = '';
+      const variants = (product.variants || []).filter(v => v.active);
+      if (!variants.length) { root.innerHTML = '<p class="text-xs text-rose-500">Tidak ada variasi aktif</p>'; return; }
+      const sel = document.createElement('select');
+      sel.className = 'input-field w-full rounded-xl border border-slate-200 p-2.5 text-sm bg-white font-bold text-slate-800';
+      sel.innerHTML = '<option value="">-- Pilih Variasi WIP --</option>';
+      variants.forEach(v => { const opt = document.createElement('option'); opt.value = v.id; opt.textContent = v.label || 'Standar'; sel.appendChild(opt); });
+      sel.onchange = () => { state.selectedVariant = variants.find(x => x.id === sel.value) || null; };
+      root.appendChild(sel);
     }
 
     function resetFormVisibility() {
       ['product-fields', 'variant-select-card', 'variant-manage-card', 'attribute-builder-card', 'location-card', 'qty-card', 'reporter-card', 'form-opname-alert'].forEach(id => {
-        const el = $(id);
-        if (el) el.classList.add('hidden');
+        const el = $(id); if (el) el.classList.add('hidden');
       });
-      $('btn-submit').classList.remove('hidden'); $('btn-cancel-add-variants').classList.add('hidden');
-      $('btn-open-add-variants').classList.remove('hidden');
+      $('btn-submit').classList.remove('hidden'); $('btn-cancel-add-variants').classList.add('hidden'); $('btn-open-add-variants').classList.remove('hidden');
     }
 
     function openTransactionForm(product) {
       state.formMode = 'transaction'; state.selectedAttributes = {}; state.selectedVariant = null; state.locationFrom = ''; state.locationTo = ''; state.trxId = null;
-
       if (product.locations) LOCATIONS = product.locations;
-
       resetFormVisibility(); showScreen('form', true);
-      $('form-title').textContent = ACTIVITIES[state.key].label; $('form-subtitle').textContent = 'Pilih variasi, lokasi, dan kuantitas';
+      $('form-title').textContent = ACTIVITIES_GUDANG[state.key].label; $('form-subtitle').textContent = 'Pilih variasi, lokasi, dan kuantitas';
       $('form-barcode').textContent = product.barcode; $('product-status-pill').classList.remove('hidden'); $('product-status-pill').textContent = 'PRODUK AKTIF';
       $('variant-select-card').classList.remove('hidden'); $('variant-product-name').textContent = product.nama;
       renderVariantSelector(product);
 
-      const activity = ACTIVITIES[state.key];
+      const activity = ACTIVITIES_GUDANG[state.key];
       const isOpname = state.key === 'opname';
-
       if (isOpname && state.opnameSession) {
         $('form-opname-alert').classList.remove('hidden');
         $('form-opname-session-name').textContent = state.opnameSession.nama_sesi;
         $('form-opname-location').textContent = state.opnameSession.lokasi;
         state.locationTo = state.opnameSession.lokasi;
       } else {
-        const hasFrom = activity.fields.includes('from'); const hasTo = activity.fields.includes('to');
+        const hasFrom = activity.fields.includes('from'), hasTo = activity.fields.includes('to');
         $('location-card').classList.toggle('hidden', !(hasFrom || hasTo));
         $('location-from-wrap').classList.toggle('hidden', !hasFrom); $('location-to-wrap').classList.toggle('hidden', !hasTo);
         $('location-from-label').textContent = activity.labelFrom || 'Lokasi asal'; $('location-to-label').textContent = activity.labelTo || 'Lokasi tujuan';
@@ -1061,11 +1392,8 @@
       }
 
       $('qty-card').classList.remove('hidden'); $('qty-label').textContent = activity.qty; $('qty-input').value = ''; $('qty-input').min = activity.min;
-      $('qty-hint').textContent = isOpname ? 'Masukkan jumlah fisik sebenarnya (hitung ualng aman, data lama di sesi ini akan tertimpa).' : 'Masukkan jumlah unit yang diproses.';
-
-      $('reporter-card').classList.remove('hidden');
-      $('reporter-input').value = '';
-
+      $('qty-hint').textContent = isOpname ? 'Masukkan jumlah fisik sebenarnya.' : 'Masukkan jumlah unit yang diproses.';
+      $('reporter-card').classList.remove('hidden'); $('reporter-input').value = '';
       $('btn-submit-text').textContent = isOpname ? 'Simpan Hitungan Fisik' : 'Simpan transaksi';
     }
 
@@ -1126,10 +1454,7 @@
       const root = $('location-' + which + '-options'); root.innerHTML = '';
       LOCATIONS.forEach(location => {
         const button = document.createElement('button'); button.type = 'button'; button.className = 'choice-btn flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-left';
-        const logo = document.createElement('span'); logo.className = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black';
-        if (location.kind === 'warehouse') { logo.classList.add('bg-slate-100', 'text-slate-700'); logo.textContent = 'R'; }
-        if (location.kind === 'shopee') { logo.style.backgroundColor = '#ee4d2d'; logo.classList.add('text-white'); logo.textContent = 'S'; }
-        if (location.kind === 'tiktok') { logo.style.backgroundColor = '#111111'; logo.classList.add('text-white'); logo.textContent = '♪'; }
+        const logo = document.createElement('span'); logo.className = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 text-sm font-black'; logo.textContent = location.label[0]?.toUpperCase() || 'R';
         const name = document.createElement('span'); name.className = 'flex-1 text-sm font-semibold'; name.textContent = location.label;
         const check = document.createElement('span'); check.className = 'text-indigo-600'; check.textContent = '✓';
         const value = which === 'from' ? state.locationFrom : state.locationTo;
@@ -1138,8 +1463,7 @@
         button.addEventListener('click', () => {
           if (which === 'from') { state.locationFrom = location.value; if (state.locationTo === location.value) state.locationTo = ''; }
           else state.locationTo = location.value;
-          renderLocationOptions('from'); renderLocationOptions('to');
-          updateQtyHint();
+          renderLocationOptions('from'); renderLocationOptions('to'); updateQtyHint();
         });
         root.appendChild(button);
       });
@@ -1157,7 +1481,7 @@
       $('product-fields').classList.remove('hidden'); $('product-name').value = ''; $('product-active').checked = true; $('product-status-pill').classList.add('hidden');
       $('attribute-builder-card').classList.remove('hidden'); $('attribute-list').innerHTML = ''; $('attribute-list').classList.remove('hidden'); $('btn-add-attribute').classList.remove('hidden'); $('simple-product').checked = false; $('simple-product').disabled = false;
       addAttributeRow({ name: 'Warna', type: 'color', raw: '' });
-      $('btn-add-attribute').classList.remove('hidden'); $('btn-open-add-variants').classList.add('hidden'); $('btn-submit-text').textContent = 'Daftarkan produk'; $('qty-card').classList.add('hidden');
+      $('btn-open-add-variants').classList.add('hidden'); $('btn-submit-text').textContent = 'Daftarkan produk';
       buildMatrixPreview(false);
     }
 
@@ -1167,12 +1491,11 @@
       row.innerHTML = `
         <div class="mb-2 flex items-center justify-between"><span class="text-xs font-bold text-slate-600">Atribut</span><button type="button" data-remove class="text-xs font-semibold text-rose-500">Hapus</button></div>
         <div class="grid grid-cols-[1fr_105px] gap-2"><input data-name class="input-field min-w-0 rounded-lg border border-slate-200 px-2.5 py-2 text-sm" placeholder="Nama, mis. Warna"><select data-type class="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs"><option value="text">Teks</option><option value="color">Warna</option></select></div>
-        <label class="mt-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilihan nilai</label><textarea data-values rows="2" class="input-field mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-2 text-xs" placeholder="Teks: L, XL, XXL. Warna: Hitam:#171717, Putih:#FFFFFF"></textarea>
-        <p class="mt-1 text-[10px] text-slate-400" data-hint>Untuk tipe Warna, tulis setiap nilai dengan format Nama:#RRGGBB.</p>`;
+        <label class="mt-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilihan nilai</label><textarea data-values rows="2" class="input-field mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-2 text-xs" placeholder="Teks: L, XL. Warna: Hitam:#171717, Putih:#FFFFFF"></textarea>`;
       row.querySelector('[data-name]').value = data.name || '';
       row.querySelector('[data-type]').value = data.type || 'text';
       row.querySelector('[data-values]').value = data.raw || '';
-      row.querySelector('[data-type]').addEventListener('change', () => { row.querySelector('[data-hint]').textContent = row.querySelector('[data-type]').value === 'color' ? 'Format warna: Hitam:#171717, Putih:#FFFFFF.' : 'Pisahkan setiap pilihan dengan koma.'; buildMatrixPreview(state.addVariantsMode); });
+      row.querySelector('[data-type]').addEventListener('change', () => buildMatrixPreview(state.addVariantsMode));
       row.querySelector('[data-remove]').addEventListener('click', () => { row.remove(); buildMatrixPreview(state.addVariantsMode); });
       row.querySelectorAll('input,textarea').forEach(el => el.addEventListener('input', () => buildMatrixPreview(state.addVariantsMode)));
       root.appendChild(row);
@@ -1181,21 +1504,15 @@
     function parseAttributeRows() {
       const rows = [...$('attribute-list').querySelectorAll('.attribute-row')];
       const attrs = rows.map(row => {
-        const name = row.querySelector('[data-name]').value.trim();
-        const type = row.querySelector('[data-type]').value;
-        const raw = row.querySelector('[data-values]').value.trim();
+        const name = row.querySelector('[data-name]').value.trim(), type = row.querySelector('[data-type]').value, raw = row.querySelector('[data-values]').value.trim();
         if (!name || !raw) return null;
-        const tokens = raw.split(',').map(s => s.trim()).filter(Boolean);
-        const values = tokens.map(token => {
-          if (type === 'color') {
-            const parts = token.split(/[:=]/); return { value: (parts[0] || '').trim(), hex: (parts[1] || '').trim() };
-          }
+        const values = raw.split(',').map(s => s.trim()).filter(Boolean).map(token => {
+          if (type === 'color') { const parts = token.split(/[:=]/); return { value: (parts[0] || '').trim(), hex: (parts[1] || '').trim() }; }
           return { value: token, hex: '' };
         });
         return { name, type, values };
       });
-      if (attrs.some(a => !a)) throw new Error('Lengkapi nama atribut dan pilihan nilainya, atau hapus atribut yang kosong.');
-      const names = attrs.map(a => a.name.toLowerCase()); if (new Set(names).size !== names.length) throw new Error('Nama atribut tidak boleh sama.');
+      if (attrs.some(a => !a)) throw new Error('Lengkapi nama atribut dan pilihan nilainya.');
       return attrs;
     }
 
@@ -1209,33 +1526,25 @@
     }
 
     function buildMatrixPreview(isAddMode) {
-      const wrap = $('matrix-wrap'); const list = $('matrix-list');
+      const wrap = $('matrix-wrap'), list = $('matrix-list');
       if ($('simple-product').checked) { wrap.classList.remove('hidden'); list.innerHTML = '<p class="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Satu variasi Standar akan dibuat.</p>'; state.matrix = [{ attributes: {}, active: true, key: 'Standar' }]; $('matrix-count').textContent = '1 variasi'; return; }
       let attributes;
       try { attributes = parseAttributeRows(); } catch (e) { wrap.classList.add('hidden'); state.matrix = []; return; }
       if (!attributes.length) { wrap.classList.add('hidden'); state.matrix = []; return; }
       let combos = cartesianVariants(attributes);
-      if (combos.length > 300) { wrap.classList.remove('hidden'); list.innerHTML = '<p class="rounded-lg bg-rose-50 p-3 text-xs text-rose-600">Kombinasi lebih dari 300. Kurangi jumlah pilihan atribut.</p>'; state.matrix = []; $('matrix-count').textContent = 'Melebihi batas'; return; }
-      const existingKeys = new Set((state.product?.variants || []).map(v => variantKeyFromObject(v.attributes, attributes)));
-      const previous = new Map((state.matrix || []).map(v => [v.key, v.active]));
-      combos = combos.map(v => { const exists = existingKeys.has(variantKeyFromObject(v.attributes, attributes)); return Object.assign(v, { active: isAddMode ? (!exists && previous.get(v.key) !== false) : (previous.has(v.key) ? previous.get(v.key) : true), exists }); });
-      state.matrix = combos;
+      const existingKeys = new Set((state.product?.variants || []).map(v => definitionsKey(v.attributes, attributes)));
+      state.matrix = combos.map(v => Object.assign(v, { active: !existingKeys.has(definitionsKey(v.attributes, attributes)), exists: existingKeys.has(definitionsKey(v.attributes, attributes)) }));
       wrap.classList.remove('hidden'); list.innerHTML = '';
-      combos.forEach((combo, index) => {
+      state.matrix.forEach((combo, index) => {
         const row = document.createElement('label'); row.className = 'flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-2.5';
         const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = combo.active; cb.disabled = combo.exists; cb.className = 'h-4 w-4 accent-indigo-600';
-        cb.addEventListener('change', () => { state.matrix[index].active = cb.checked; updateMatrixCount(); });
-        const label = document.createElement('span'); label.className = 'min-w-0 flex-1 text-xs font-medium text-slate-700'; label.textContent = comboLabel(combo.attributes, attributes);
-        if (combo.exists) { const badge = document.createElement('span'); badge.className = 'text-[10px] font-semibold text-slate-400'; badge.textContent = 'Sudah ada'; row.append(cb, label, badge); }
-        else row.append(cb, label);
-        list.appendChild(row);
+        cb.addEventListener('change', () => { state.matrix[index].active = cb.checked; $('matrix-count').textContent = state.matrix.filter(x => x.active && !x.exists).length + ' dipilih'; });
+        const label = document.createElement('span'); label.className = 'min-w-0 flex-1 text-xs font-medium text-slate-700'; label.textContent = attributes.map(d => d.name + ': ' + combo.attributes[d.name]).join(' · ');
+        row.append(cb, label); list.appendChild(row);
       });
-      updateMatrixCount();
+      $('matrix-count').textContent = state.matrix.filter(x => x.active && !x.exists).length + ' dipilih';
     }
-
-    function updateMatrixCount() { const active = state.matrix.filter(v => v.active && !v.exists).length; const total = state.matrix.filter(v => !v.exists).length; $('matrix-count').textContent = active + ' / ' + total + ' dipilih'; }
-    function comboLabel(attrs, definitions) { if (!definitions.length) return 'Standar'; return definitions.map(d => d.name + ': ' + attrs[d.name]).join(' · '); }
-    function variantKeyFromObject(attrs, definitions) { return definitions.map(d => d.name + '=' + String(attrs[d.name] || '').toLowerCase()).join('|'); }
+    function definitionsKey(attrs, defs) { return defs.map(d => d.name + '=' + String(attrs[d.name] || '').toLowerCase()).join('|'); }
 
     function openManageProductForm(product) {
       state.formMode = 'manage'; resetFormVisibility(); showScreen('form', true);
@@ -1252,15 +1561,14 @@
       product.variants.forEach(v => {
         const row = document.createElement('div'); row.className = 'flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3';
         const main = document.createElement('div'); main.className = 'min-w-0 flex-1';
-        const title = document.createElement('p'); title.className = 'text-xs font-semibold text-slate-800'; title.textContent = v.label || 'Standar';
-        const stock = document.createElement('p'); stock.className = 'mt-1 text-[10px] text-slate-400'; stock.textContent = stockSummary(v);
+        main.innerHTML = `<p class="text-xs font-semibold text-slate-800">${v.label || 'Standar'}</p><p class="mt-1 text-[10px] text-slate-400">${stockSummary(v)}</p>`;
         const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = `rounded-full px-3 py-1.5 text-[10px] font-bold ${v.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`; toggle.textContent = v.active ? 'Aktif' : 'Nonaktif';
         toggle.addEventListener('click', async () => {
           toggle.disabled = true;
           try { const res = await apiPost({ action: 'SET_VARIANT_STATUS', barcode: product.barcode, variant_id: v.id, active: !v.active }); if (!res.success) throw new Error(res.message); const refreshed = await apiPost({ action: 'GET_PRODUCT', barcode: product.barcode, include_inactive: true }); state.product = refreshed.data; renderVariantManagement(refreshed.data); toast(res.message); }
-          catch (e) { toast(e.message || 'Gagal mengubah status variasi.', 'error'); toggle.disabled = false; }
+          catch (e) { toast(e.message || 'Gagal mengubah status.', 'error'); toggle.disabled = false; }
         });
-        main.append(title, stock); row.append(main, toggle); root.appendChild(row);
+        row.append(main, toggle); root.appendChild(row);
       });
     }
 
@@ -1268,10 +1576,7 @@
       state.addVariantsMode = true; state.matrix = []; $('variant-manage-card').classList.add('hidden'); $('attribute-builder-card').classList.remove('hidden'); $('btn-open-add-variants').classList.add('hidden'); $('btn-cancel-add-variants').classList.remove('hidden'); $('btn-submit-text').textContent = 'Simpan variasi baru';
       $('simple-product').checked = false; $('simple-product').disabled = !!((state.product.attributeDefinitions || []).length || state.product.variants.length); $('attribute-list').innerHTML = ''; $('attribute-list').classList.remove('hidden'); $('btn-add-attribute').classList.remove('hidden');
       const defs = state.product.attributeDefinitions || [];
-      if (defs.length) defs.forEach(d => {
-        const raw = d.values.map(v => d.type === 'color' ? v.value + ':' + v.hex : v.value).join(', ');
-        addAttributeRow({ name: d.name, type: d.type, raw });
-      });
+      if (defs.length) defs.forEach(d => addAttributeRow({ name: d.name, type: d.type, raw: d.values.map(v => d.type === 'color' ? v.value + ':' + v.hex : v.value).join(', ') }));
       else addAttributeRow({ name: 'Warna', type: 'color', raw: '' });
       buildMatrixPreview(true);
     }
@@ -1288,10 +1593,8 @@
           const attributes = $('simple-product').checked ? [] : parseAttributeRows();
           const variants = state.matrix.filter(v => v.active && !v.exists).map(v => ({ attributes: v.attributes, active: true }));
           if (!variants.length) throw new Error('Pilih minimal satu kombinasi variasi.');
-          if (attributes.length === 0 && !$('simple-product').checked) throw new Error('Tambahkan atribut atau pilih Produk tanpa pilihan variasi.');
-          const payload = { action: 'CREATE_PRODUCT', transaction_id: newTransactionId(), barcode: state.barcode, nama: $('product-name').value.trim(), status_aktif: $('product-active').checked, attributes, variants };
           if (!$('product-name').value.trim()) throw new Error('Nama produk wajib diisi.');
-          await submitPayload(payload, 'scan');
+          await submitPayload({ action: 'CREATE_PRODUCT', transaction_id: newTransactionId(), barcode: state.barcode, nama: $('product-name').value.trim(), status_aktif: $('product-active').checked, attributes, variants }, 'scan');
         } catch (e) { toast(e.message, 'error'); }
         return;
       }
@@ -1310,46 +1613,26 @@
         return;
       }
 
-      const activity = ACTIVITIES[state.key];
+      const activity = ACTIVITIES_GUDANG[state.key];
       if (!state.selectedVariant) return toast('Pilih variasi produk terlebih dahulu.', 'error');
 
       if (state.key === 'opname') {
-        const qtyRaw = $('qty-input').value; const qty = Number(qtyRaw);
+        const qtyRaw = $('qty-input').value, qty = Number(qtyRaw);
         if (qtyRaw === '' || !Number.isInteger(qty) || qty < 0) return toast('Kuantitas tidak valid.', 'error');
         const pelapor = $('reporter-input').value.trim();
         if (!pelapor) return toast('Nama pelapor wajib diisi.', 'error');
-
-        await submitPayload({
-          action: 'SUBMIT_OPNAME_COUNT',
-          session_id: state.opnameSession.session_id,
-          barcode: state.barcode,
-          variant_id: state.selectedVariant.id,
-          qty: qty,
-          nama_pelapor: pelapor
-        }, 'scan-continue');
+        await submitPayload({ action: 'SUBMIT_OPNAME_COUNT', session_id: state.opnameSession.session_id, barcode: state.barcode, variant_id: state.selectedVariant.id, qty: qty, nama_pelapor: pelapor }, 'scan-continue');
         return;
       }
 
       if (activity.fields.includes('from') && !state.locationFrom) return toast('Pilih lokasi asal.', 'error');
       if (activity.fields.includes('to') && !state.locationTo) return toast('Pilih lokasi tujuan.', 'error');
-
-      const qtyRaw = $('qty-input').value; const qty = Number(qtyRaw);
+      const qtyRaw = $('qty-input').value, qty = Number(qtyRaw);
       if (qtyRaw === '' || !Number.isInteger(qty) || qty < activity.min) return toast('Kuantitas tidak valid.', 'error');
-
       const pelapor = $('reporter-input').value.trim();
       if (!pelapor) return toast('Nama pelapor wajib diisi.', 'error');
 
-      await submitPayload({
-        action: 'SAVE_TRANSACTION',
-        transaction_id: state.trxId || newTransactionId(),
-        activity: activity.value,
-        barcode: state.barcode,
-        variant_id: state.selectedVariant.id,
-        location_from: state.locationFrom,
-        location_to: state.locationTo,
-        qty,
-        nama_pelapor: pelapor
-      }, 'scan');
+      await submitPayload({ action: 'SAVE_TRANSACTION', transaction_id: state.trxId || newTransactionId(), activity: activity.value, barcode: state.barcode, variant_id: state.selectedVariant.id, location_from: state.locationFrom, location_to: state.locationTo, qty, nama_pelapor: pelapor }, 'scan');
     });
 
     async function submitPayload(payload, returnAction) {
@@ -1359,18 +1642,10 @@
         if (!result.success) throw new Error(result.message || 'Data gagal disimpan.');
         toast(result.message || 'Berhasil disimpan.');
         state.trxId = null;
-
-        if (returnAction === 'scan-continue') {
-          showScreen('scan', false);
-          $('qty-input').value = '';
-          startCamera();
-        } else {
-          await stopScanner();
-          history.back();
-        }
-      } catch (error) {
-        console.error(error); state.trxId = payload.transaction_id; toast(error.message || 'Gagal menghubungi server.', 'error');
-      } finally {
+        if (returnAction === 'scan-continue') { showScreen('scan', false); $('qty-input').value = ''; startCamera(); }
+        else { await stopScanner(); history.back(); }
+      } catch (error) { state.trxId = payload.transaction_id; toast(error.message || 'Gagal menghubungi server.', 'error'); }
+      finally {
         button.disabled = false;
         if (state.formMode === 'create') $('btn-submit-text').textContent = 'Daftarkan produk';
         else if (state.formMode === 'manage' && state.addVariantsMode) $('btn-submit-text').textContent = 'Simpan variasi baru';
@@ -1381,16 +1656,20 @@
 
     function newTransactionId() { return 'TRX-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase(); }
 
-    $('btn-cancel-scan').addEventListener('click', navigateBack);
+    $('btn-cancel-scan').addEventListener('click', () => {
+      if (state.key === 'scan-qc') showScreen('qc', false);
+      else navigateBack();
+    });
     $('btn-back-bahan').addEventListener('click', navigateBack);
     $('btn-back-wo').addEventListener('click', navigateBack);
+    $('btn-back-kirim-bahan').addEventListener('click', navigateBack);
+    $('btn-back-qc').addEventListener('click', navigateBack);
+    $('btn-back-tarif').addEventListener('click', navigateBack);
+    $('btn-back-upah').addEventListener('click', navigateBack);
+    $('btn-back-hpp').addEventListener('click', navigateBack);
     $('btn-back').addEventListener('click', () => {
-      if (state.key === 'opname') {
-        showScreen('scan', false);
-        startCamera();
-      } else {
-        navigateBack();
-      }
+      if (state.key === 'opname') { showScreen('scan', false); startCamera(); }
+      else navigateBack();
     });
     $('btn-manual-toggle').addEventListener('click', () => { const form = $('manual-form'); const open = form.classList.contains('hidden'); form.classList.toggle('hidden', !open); form.classList.toggle('flex', open); if (open) $('manual-barcode').focus(); });
     $('manual-form').addEventListener('submit', async event => { event.preventDefault(); const value = $('manual-barcode').value.trim(); if (!value) return; await stopScanner(); await processBarcode(value); });
@@ -1403,11 +1682,6 @@
     showScreen('home', false);
     history.replaceState({ app: true, screen: 'home' }, '', '#home');
 
-    // PWA: deteksi versi baru TANPA reload paksa.
-    // Versi baru menunggu sampai pengguna menekan "Muat ulang" (aman bila transaksi sedang diisi).
-    if (!isGasConfigured()) {
-      window.addEventListener('load', () => setTimeout(() => toast('URL Apps Script belum diatur (APP_CONFIG.GAS_URL).', 'error'), 600));
-    }
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
       let reloadRequested = false;
       function showUpdateBanner(worker) {
@@ -1415,39 +1689,23 @@
         const bar = document.createElement('div');
         bar.id = 'sw-update-banner';
         bar.className = 'fixed left-3 right-3 bottom-3 z-50 flex items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg';
-        bar.innerHTML = '<span>Versi baru tersedia. Selesaikan transaksi yang sedang diisi dulu.</span>';
+        bar.innerHTML = '<span>Versi baru tersedia. Selesaikan transaksi dulu.</span>';
         const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'shrink-0 rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-900';
-        btn.textContent = 'Muat ulang';
+        btn.type = 'button'; btn.className = 'shrink-0 rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-900'; btn.textContent = 'Muat ulang';
         btn.addEventListener('click', () => { reloadRequested = true; worker.postMessage({ type: 'SKIP_WAITING' }); });
-        bar.appendChild(btn);
-        document.body.appendChild(bar);
+        bar.appendChild(btn); document.body.appendChild(bar);
       }
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
           if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg.waiting);
           reg.addEventListener('updatefound', () => {
             const worker = reg.installing;
-            if (!worker) return;
-            worker.addEventListener('statechange', () => {
-              if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(worker);
-            });
+            if (worker) worker.addEventListener('statechange', () => { if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(worker); });
           });
-        }).catch(err => console.warn('Service worker error:', err));
+        }).catch(() => { });
       });
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!reloadRequested) return; // jangan pernah reload tanpa permintaan pengguna
-        reloadRequested = false;
-        location.reload();
-      });
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (reloadRequested) { reloadRequested = false; location.reload(); } });
     }
-
-    let deferredInstall = null;
-    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-    window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferredInstall = event; if (!standalone) $('btn-install').classList.remove('hidden'); });
-    $('btn-install').addEventListener('click', async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('btn-install').classList.add('hidden'); });
-    window.addEventListener('appinstalled', () => { $('btn-install').classList.add('hidden'); toast('Aplikasi berhasil dipasang.'); });
   </script>
 </body>
 
