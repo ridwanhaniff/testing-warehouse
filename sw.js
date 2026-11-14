@@ -1,12 +1,14 @@
-// Ina Basic Store - Service Worker (kandidat M0)
+// Ina Basic Store - Service Worker
 // Naikkan CACHE_NAME setiap kali file shell berubah.
-const CACHE_NAME = 'ina-warehouse-v5';
+const CACHE_NAME = 'ina-warehouse-v6';
 
 // File milik sendiri. Satu file hilang TIDAK boleh menggagalkan instalasi.
 const SHELL = [
     './',
     './index.html',
+    './penjahit.html',
     './manifest.webmanifest',
+    './manifest-penjahit.webmanifest',
     './logo.png',
     './logo-192.png',
     './logo-512.png'
@@ -18,8 +20,7 @@ const CDN = [
 
 self.addEventListener('install', (event) => {
     // Tidak memanggil skipWaiting() otomatis. Versi baru menunggu sampai
-    // pengguna menekan "Muat ulang" (pesan SKIP_WAITING dari halaman),
-    // supaya halaman yang sedang dipakai tidak tiba-tiba berganti.
+    // halaman mengirim pesan SKIP_WAITING agar input yang sedang berjalan tidak terputus.
     event.waitUntil((async () => {
         const cache = await caches.open(CACHE_NAME);
         await Promise.all(SHELL.map((url) =>
@@ -78,6 +79,13 @@ self.addEventListener('fetch', (event) => {
                 }
                 return res;
             })
-            .catch(() => caches.match(req).then((hit) => hit || (isPage ? caches.match('./index.html') : undefined)))
+            .catch(() => caches.match(req).then((hit) => {
+                if (hit) return hit;
+                if (isPage) {
+                    const fallback = url.pathname.includes('penjahit') ? './penjahit.html' : './index.html';
+                    return caches.match(fallback);
+                }
+                return undefined;
+            }))
     );
 });
