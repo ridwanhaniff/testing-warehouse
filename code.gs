@@ -1,7 +1,8 @@
 /**
- * INA BASIC STORE - Warehouse V3 (Fase 2)
- * Penambahan modul Stock Opname Berbasis Sesi.
- * Stok tidak akan berubah sebelum sesi opname disetujui.
+ * INA BASIC STORE - Warehouse V3 (kandidat M0)
+ * Perubahan M0 dari code_1.gs: jalur SAVE_TRANSACTION 'Opname' dihapus.
+ * Stock opname HANYA lewat sesi (CREATE_OPNAME_SESSION / SUBMIT_OPNAME_COUNT / APPROVE_OPNAME_SESSION).
+ * Stok tidak berubah sebelum sesi opname disetujui.
  */
 
 var IBS = {
@@ -537,10 +538,11 @@ function saveStockTransactionV2_(ss, payload) {
 
   if (!trxId || !barcode || !variantId) return { success: false, message: 'ID transaksi, barcode, dan variasi wajib diisi.' };
   if (!pelapor) return { success: false, message: 'Nama pelapor wajib diisi untuk transaksi ini.' };
-  if (['Masuk', 'Keluar', 'Mutasi', 'Opname'].indexOf(action) === -1) return { success: false, message: 'Aktivitas tidak valid.' };
-  if (textV2_(payload.qty) === '' || !isFinite(qty) || qty < 0 || Math.floor(qty) !== qty || (action !== 'Opname' && qty < 1)) return { success: false, message: 'Kuantitas tidak valid.' };
+  if (action === 'Opname') return { success: false, message: 'Stock opname hanya dapat dilakukan melalui sesi opname.' };
+  if (['Masuk', 'Keluar', 'Mutasi'].indexOf(action) === -1) return { success: false, message: 'Aktivitas tidak valid.' };
+  if (textV2_(payload.qty) === '' || !isFinite(qty) || qty < 1 || Math.floor(qty) !== qty) return { success: false, message: 'Kuantitas tidak valid.' };
   if ((action === 'Keluar' || action === 'Mutasi') && !isValidLocationV2_(ss, from)) return { success: false, message: 'Lokasi asal tidak valid atau nonaktif.' };
-  if ((action === 'Masuk' || action === 'Mutasi' || action === 'Opname') && !isValidLocationV2_(ss, to)) return { success: false, message: 'Lokasi tujuan tidak valid atau nonaktif.' };
+  if ((action === 'Masuk' || action === 'Mutasi') && !isValidLocationV2_(ss, to)) return { success: false, message: 'Lokasi tujuan tidak valid atau nonaktif.' };
   if (action === 'Mutasi' && from === to) return { success: false, message: 'Lokasi asal dan tujuan tidak boleh sama.' };
 
   var shLog = ss.getSheetByName(IBS.SHEET_LOG);
@@ -554,7 +556,7 @@ function saveStockTransactionV2_(ss, payload) {
 
   var stockSheet = ss.getSheetByName(IBS.SHEET_STOCK);
   var stockFrom = (action === 'Keluar' || action === 'Mutasi') ? findStockRowV2_(stockSheet, variantId, from) : null;
-  var stockTo = (action === 'Masuk' || action === 'Mutasi' || action === 'Opname') ? findStockRowV2_(stockSheet, variantId, to) : null;
+  var stockTo = (action === 'Masuk' || action === 'Mutasi') ? findStockRowV2_(stockSheet, variantId, to) : null;
   var available = stockFrom ? stockFrom.qty : 0;
   if ((action === 'Keluar' || action === 'Mutasi') && available < qty) {
     return { success: false, message: 'Stok ' + variant.label + ' di ' + from + ' tidak cukup. Tersedia: ' + available };
@@ -569,9 +571,6 @@ function saveStockTransactionV2_(ss, payload) {
     if (action === 'Masuk' || action === 'Mutasi') {
       var toQty = stockTo ? stockTo.qty : 0;
       changes.push(writeStockQuantityV2_(stockSheet, variantId, barcode, to, toQty + qty, now));
-    }
-    if (action === 'Opname') {
-      changes.push(writeStockQuantityV2_(stockSheet, variantId, barcode, to, qty, now));
     }
     var display = product.name + (variant.label ? ' · ' + variant.label : '');
     shLog.appendRow([now, trxId, action, barcode, from, to, qty, 'SUCCESS', variantId, product.name, JSON.stringify(variant.attributes || {}), variant.label, display, pelapor]);

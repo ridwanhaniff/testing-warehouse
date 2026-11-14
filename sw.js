@@ -1,60 +1,83 @@
-const CACHE_NAME = 'ina-warehouse-v4';
-const ASSETS_TO_CACHE = [
+// Ina Basic Store - Service Worker (kandidat M0)
+// Naikkan CACHE_NAME setiap kali file shell berubah.
+const CACHE_NAME = 'ina-warehouse-v5';
+
+// File milik sendiri. Satu file hilang TIDAK boleh menggagalkan instalasi.
+const SHELL = [
     './',
     './index.html',
     './manifest.webmanifest',
     './logo.png',
     './logo-192.png',
-    './logo-512.png',
+    './logo-512.png'
+];
+const CDN = [
     'https://cdn.tailwindcss.com',
     'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js'
 ];
 
-// Install Service Worker dan Cache File
 self.addEventListener('install', (event) => {
-    // skipWaiting memaksa SW baru untuk segera aktif tanpa menunggu SW lama ditutup
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
-            .then(() => self.skipWaiting())
-    );
+    // Tidak memanggil skipWaiting() otomatis. Versi baru menunggu sampai
+    // pengguna menekan "Muat ulang" (pesan SKIP_WAITING dari halaman),
+    // supaya halaman yang sedang dipakai tidak tiba-tiba berganti.
+    event.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        await Promise.all(SHELL.map((url) =>
+            cache.add(url).catch((err) => console.warn('SW: gagal cache', url, err && err.message))
+        ));
+        await Promise.all(CDN.map((url) =>
+            fetch(url, { mode: 'no-cors' }).then((res) => cache.put(url, res)).catch(() => { })
+        ));
+    })());
 });
 
-// Hapus Cache Lama jika ada versi baru
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('activate', (event) => {
-    // clients.claim memaksa SW baru untuk segera mengontrol semua halaman yang terbuka
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
-    );
+    event.waitUntil((async () => {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+        await self.clients.claim();
+    })());
 });
 
-// Strategi: Network First, fallback to Cache
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
+    const req = event.request;
+    if (req.method !== 'GET') return;
 
-    event.respondWith(
-        fetch(event.request)
-            .then((response) => {
-                // Jika sukses ambil dari jaringan, perbarui cache secara dinamis
-                if (response && response.status === 200 && response.type === 'basic') {
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
+    const url = new URL(req.url);
+    // Jangan pernah mencegat atau menyimpan respons Apps Script (data transaksi).
+    if (url.hostname.endsWith('script.google.com') || url.hostname.endsWith('googleusercontent.com')) return;
+
+    const accept = req.headers.get('accept') || '';
+    const isPage = req.mode === 'navigate' || accept.indexOf('text/html') !== -1;
+
+    // Pustaka CDN: cache dulu, ambil jaringan bila belum ada.
+    if (url.origin !== self.location.origin) {
+        event.respondWith(
+            caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+                if (res && (res.ok || res.type === 'opaque')) {
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then((c) => c.put(req, copy));
                 }
-                return response;
+                return res;
+            }))
+        );
+        return;
+    }
+
+    // File milik sendiri: jaringan dulu, cache sebagai cadangan offline.
+    event.respondWith(
+        fetch(req)
+            .then((res) => {
+                if (res && res.status === 200 && res.type === 'basic') {
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then((c) => c.put(req, copy));
+                }
+                return res;
             })
-            .catch(() => {
-                // Jika offline atau gagal, ambil dari cache
-                return caches.match(event.request);
-            })
+            .catch(() => caches.match(req).then((hit) => hit || (isPage ? caches.match('./index.html') : undefined)))
     );
 });

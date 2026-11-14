@@ -571,7 +571,13 @@
 
   <script>
     // Keep this endpoint equal to the deployed Apps Script Web App URL.
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxgR2xo-4FYI4e5KfLYBH-u7SGJ9CS8Xp19b8JRvENilP0Beon-XYYlAV5n7kTd6Rx6wA/exec';
+    // ===== KONFIGURASI (ubah HANYA di sini) =====
+    // Isi dengan URL Web App Apps Script milik salinan/development.
+    // Jangan isi URL production sebelum owner mengizinkan cutover.
+    const APP_CONFIG = { GAS_URL: 'PASTE_DEV_WEB_APP_URL_HERE' };
+    const GAS_URL = APP_CONFIG.GAS_URL;
+    function isGasConfigured() { return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(GAS_URL); }
+    // =============================================
 
     let LOCATIONS = [];
 
@@ -624,6 +630,7 @@
     }
 
     async function apiPost(payload) {
+      if (!isGasConfigured()) throw new Error('URL Apps Script belum diatur. Isi APP_CONFIG.GAS_URL di index.html.');
       const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
       const json = await response.json();
       if (!response.ok) throw new Error('Server HTTP ' + response.status);
@@ -1396,28 +1403,42 @@
     showScreen('home', false);
     history.replaceState({ app: true, screen: 'home' }, '', '#home');
 
-    // PWA Auto Update Registration (updateViaCache: none to bypass HTTP cache for the SW itself)
+    // PWA: deteksi versi baru TANPA reload paksa.
+    // Versi baru menunggu sampai pengguna menekan "Muat ulang" (aman bila transaksi sedang diisi).
+    if (!isGasConfigured()) {
+      window.addEventListener('load', () => setTimeout(() => toast('URL Apps Script belum diatur (APP_CONFIG.GAS_URL).', 'error'), 600));
+    }
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      let reloadRequested = false;
+      function showUpdateBanner(worker) {
+        if (document.getElementById('sw-update-banner')) return;
+        const bar = document.createElement('div');
+        bar.id = 'sw-update-banner';
+        bar.className = 'fixed left-3 right-3 bottom-3 z-50 flex items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg';
+        bar.innerHTML = '<span>Versi baru tersedia. Selesaikan transaksi yang sedang diisi dulu.</span>';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'shrink-0 rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-900';
+        btn.textContent = 'Muat ulang';
+        btn.addEventListener('click', () => { reloadRequested = true; worker.postMessage({ type: 'SKIP_WAITING' }); });
+        bar.appendChild(btn);
+        document.body.appendChild(bar);
+      }
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+          if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg.waiting);
           reg.addEventListener('updatefound', () => {
             const worker = reg.installing;
             if (!worker) return;
             worker.addEventListener('statechange', () => {
-              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-                toast('Versi terbaru diinstal. Memuat ulang...');
-                // Karena SW.js sekarang menggunakan skipWaiting dan clients.claim, 
-                // controllerchange akan terpicu otomatis. Reload aman dilakukan di sini atau di bawah.
-                setTimeout(() => location.reload(), 1000);
-              }
+              if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(worker);
             });
           });
         }).catch(err => console.warn('Service worker error:', err));
       });
-      let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
+        if (!reloadRequested) return; // jangan pernah reload tanpa permintaan pengguna
+        reloadRequested = false;
         location.reload();
       });
     }
