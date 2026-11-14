@@ -1,8 +1,10 @@
 /**
- * INA BASIC STORE - Warehouse V4.2 (Full Integration & Bug-Fixed)
- * Menggabungkan stabilitas V3.1 (Sesi Opname, Migrasi Stok, Rollback, Format Teks)
- * dengan modul Produksi & Keuangan (Pengiriman & Penerimaan Bahan, QC, Tarif Upah,
- * Slip Gaji, serta Kalkulasi HPP yang menggabungkan Cost Bahan + Cost Jahit).
+ * INA BASIC STORE - Warehouse V5.0 (Simplified HPP & Profit Edition)
+ * Perubahan V5.0:
+ * - Modul MASTER_BAHAN dan PENGIRIMAN_BAHAN dihapus untuk menyederhanakan alur operasional.
+ * - HPP, Harga_Jual, Margin_Rp, dan Margin_Persen langsung melekat pada VARIASI_PRODUK.
+ * - OPERATION_LOG mencatat snapshot HPP_Satuan, Harga_Jual_Satuan, Total_Omzet, dan Total_Profit.
+ * - Stock opname tetap terkontrol melalui sesi (CREATE_OPNAME_SESSION / SUBMIT_OPNAME_COUNT / APPROVE_OPNAME_SESSION).
  */
 
 var IBS = {
@@ -16,35 +18,21 @@ var IBS = {
   SHEET_LOCATIONS: 'MASTER_LOKASI',
   SHEET_OPNAME_SESI: 'OPNAME_SESI',
   SHEET_OPNAME_DETAIL: 'OPNAME_DETAIL',
-  SHEET_BAHAN: 'MASTER_BAHAN',
   SHEET_WO_JAHIT: 'WO_JAHIT',
   SHEET_WO_JAHIT_ITEM: 'WO_JAHIT_ITEM',
-  SHEET_DELIVERY_BAHAN: 'PENGIRIMAN_BAHAN',
-  SHEET_TARIF: 'MASTER_TARIF',
-  SHEET_LAPORAN_JAHIT: 'LAPORAN_JAHIT',
-  SHEET_PENERIMAAN_QC: 'PENERIMAAN_QC',
-  SHEET_REKAP_UPAH: 'REKAP_UPAH',
-  SHEET_HPP: 'HPP_PRODUKSI',
   LOCK_TIMEOUT_MS: 15000,
   HEADERS: {
     MASTER_PRODUK: ['Barcode', 'Nama', 'Status_Aktif', 'Created_At', 'Updated_At'],
     ATRIBUT_PRODUK: ['Barcode_Induk', 'Nama_Atribut', 'Tipe_Atribut', 'Nilai', 'Kode_Warna', 'Urutan_Atribut', 'Urutan_Nilai', 'Status_Aktif'],
-    VARIASI_PRODUK: ['ID_Variasi', 'Barcode_Induk', 'Label_Variasi', 'Atribut_JSON', 'Status_Aktif', 'Created_At', 'Updated_At'],
+    VARIASI_PRODUK: ['ID_Variasi', 'Barcode_Induk', 'Label_Variasi', 'Atribut_JSON', 'Status_Aktif', 'Created_At', 'Updated_At', 'HPP', 'Harga_Jual', 'Margin_Rp', 'Margin_Persen'],
     STOK_VARIASI: ['ID_Variasi', 'Barcode_Induk', 'Lokasi_Rak', 'Kuantitas', 'Updated_At'],
-    OPERATION_LOG: ['Timestamp', 'ID_Transaksi', 'Aktivitas', 'Barcode', 'Lokasi_Asal', 'Lokasi_Tujuan', 'Qty', 'Status', 'ID_Variasi', 'Nama_Produk', 'Variasi_JSON', 'Label_Variasi', 'Produk_Tampilan', 'Nama_Pelapor'],
+    OPERATION_LOG: ['Timestamp', 'ID_Transaksi', 'Aktivitas', 'Barcode', 'Lokasi_Asal', 'Lokasi_Tujuan', 'Qty', 'Status', 'ID_Variasi', 'Nama_Produk', 'Variasi_JSON', 'Label_Variasi', 'Produk_Tampilan', 'Nama_Pelapor', 'HPP_Satuan', 'Harga_Jual_Satuan', 'Total_Omzet', 'Total_Profit'],
     MIGRASI_ALOKASI: ['Barcode_Induk', 'Lokasi_Rak', 'ID_Variasi', 'Kuantitas'],
     MASTER_LOKASI: ['Kode_Lokasi', 'Nama_Lokasi', 'Jenis_Lokasi', 'Status_Aktif', 'Created_At'],
     OPNAME_SESI: ['Session_ID', 'Nama_Sesi', 'Lokasi', 'Status', 'Dibuat_Oleh', 'Waktu_Mulai', 'Waktu_Selesai'],
     OPNAME_DETAIL: ['Detail_ID', 'Session_ID', 'Barcode', 'ID_Variasi', 'Label_Variasi', 'Qty_Sistem_Snapshot', 'Qty_Fisik', 'Nama_Pelapor', 'Waktu', 'Status_Hitung'],
-    MASTER_BAHAN: ['Kode_Bahan', 'Nama_Bahan', 'Satuan', 'Estimasi_Cost', 'Status_Aktif', 'Created_At'],
     WO_JAHIT: ['WO_ID', 'Nomor_WO', 'Status', 'Tim_Label', 'Lokasi_Asal_Bahan', 'Lokasi_Tujuan', 'Tanggal_Target', 'Catatan', 'Dibuat_Oleh', 'Created_At'],
-    WO_JAHIT_ITEM: ['Item_ID', 'WO_ID', 'Model_Warna_Ukuran', 'Target_Qty', 'Catatan'],
-    PENGIRIMAN_BAHAN: ['Delivery_ID', 'WO_ID', 'Kode_Bahan', 'Qty_Rencana', 'Qty_Aktual_Kirim', 'Kurir', 'Penerima', 'Qty_Terima', 'Status', 'Token_QR', 'Created_At'],
-    MASTER_TARIF: ['ID_Tarif', 'Kode_Model_WIP', 'Deskripsi_Model', 'Upah_Per_Pcs', 'Status_Aktif', 'Created_At'],
-    LAPORAN_JAHIT: ['Report_ID', 'WO_ID', 'Nama_Penjahit', 'Tim_Penjahit', 'Qty_Bagus', 'Qty_Cacat', 'Status', 'Created_At'],
-    PENERIMAAN_QC: ['QC_ID', 'Report_ID', 'WO_ID', 'Tim_Penjahit', 'Qty_Lolos', 'Qty_Gagal', 'ID_Variasi', 'Nilai_Upah', 'Status_Pembayaran', 'Slip_ID', 'Nama_Admin_QC', 'Created_At'],
-    REKAP_UPAH: ['Slip_ID', 'Nama_Tim_Penjahit', 'Periode_Mulai', 'Periode_Akhir', 'Total_Qty_Lolos', 'Total_Upah', 'Status_Pembayaran', 'Tanggal_Bayar', 'Nama_Admin', 'Created_At'],
-    HPP_PRODUKSI: ['HPP_ID', 'WO_ID', 'Total_Cost_Bahan', 'Total_Cost_Jahit', 'Qty_Lolos_QC', 'HPP_Per_Pcs', 'Created_At']
+    WO_JAHIT_ITEM: ['Item_ID', 'WO_ID', 'Model_Warna_Ukuran', 'Target_Qty', 'Catatan']
   }
 };
 
@@ -58,41 +46,31 @@ function setup() {
   ensureSheetHeadersV2_(ss, IBS.SHEET_MIGRATION, IBS.HEADERS.MIGRASI_ALOKASI);
 
   var locSheet = ensureSheetHeadersV2_(ss, IBS.SHEET_LOCATIONS, IBS.HEADERS.MASTER_LOKASI);
-  cleanEmptyTrailingRowsV2_(locSheet);
   if (locSheet.getLastRow() === 1) {
     locSheet.appendRow(['RAK-UTAMA', 'Rak Utama', 'warehouse', true, new Date()]);
   }
 
   ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
   ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_DETAIL, IBS.HEADERS.OPNAME_DETAIL);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_BAHAN, IBS.HEADERS.MASTER_BAHAN);
   ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT, IBS.HEADERS.WO_JAHIT);
   ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT_ITEM, IBS.HEADERS.WO_JAHIT_ITEM);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_DELIVERY_BAHAN, IBS.HEADERS.PENGIRIMAN_BAHAN);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_TARIF, IBS.HEADERS.MASTER_TARIF);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_PENERIMAAN_QC, IBS.HEADERS.PENERIMAAN_QC);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_REKAP_UPAH, IBS.HEADERS.REKAP_UPAH);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_HPP, IBS.HEADERS.HPP_PRODUKSI);
 
   var sheets = [
     IBS.SHEET_MASTER, IBS.SHEET_ATTRIBUTES, IBS.SHEET_VARIANTS, IBS.SHEET_STOCK,
     IBS.SHEET_LOG, IBS.SHEET_MIGRATION, IBS.SHEET_LOCATIONS, IBS.SHEET_OPNAME_SESI,
-    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_BAHAN, IBS.SHEET_WO_JAHIT, IBS.SHEET_WO_JAHIT_ITEM,
-    IBS.SHEET_DELIVERY_BAHAN, IBS.SHEET_TARIF, IBS.SHEET_LAPORAN_JAHIT, IBS.SHEET_PENERIMAAN_QC,
-    IBS.SHEET_REKAP_UPAH, IBS.SHEET_HPP
+    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_WO_JAHIT, IBS.SHEET_WO_JAHIT_ITEM
   ];
+
   sheets.forEach(function (name) {
     var sh = ss.getSheetByName(name);
     if (sh) {
-      cleanEmptyTrailingRowsV2_(sh);
       sh.setFrozenRows(1);
       var width = Math.max(sh.getLastColumn(), 1);
       sh.getRange(1, 1, 1, width).setFontWeight('bold').setBackground('#d9eaf7');
     }
   });
 
-  // Pertahankan format teks (@) agar barcode/kode berawalan nol tidak berubah menjadi angka
+  // Format teks (@) agar kode/barcode berawalan nol tidak berubah jadi angka
   ss.getSheetByName(IBS.SHEET_MASTER).getRange('A:A').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_ATTRIBUTES).getRange('A:A').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_VARIANTS).getRange('A:B').setNumberFormat('@');
@@ -102,68 +80,66 @@ function setup() {
   ss.getSheetByName(IBS.SHEET_LOG).getRange('I:I').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_MIGRATION).getRange('A:C').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_OPNAME_DETAIL).getRange('B:D').setNumberFormat('@');
-  ss.getSheetByName(IBS.SHEET_BAHAN).getRange('A:A').setNumberFormat('@');
-  ss.getSheetByName(IBS.SHEET_WO_JAHIT).getRange('A:B').setNumberFormat('@');
-  ss.getSheetByName(IBS.SHEET_DELIVERY_BAHAN).getRange('A:C').setNumberFormat('@');
-  ss.getSheetByName(IBS.SHEET_TARIF).getRange('A:B').setNumberFormat('@');
 
-  // Pasang validasi checkbox HANYA pada baris data yang sudah terisi (bukan 999 baris kosong)
-  applyCheckboxValidationV2_(ss.getSheetByName(IBS.SHEET_MASTER), 3);
-  applyCheckboxValidationV2_(ss.getSheetByName(IBS.SHEET_ATTRIBUTES), 8);
-  applyCheckboxValidationV2_(ss.getSheetByName(IBS.SHEET_VARIANTS), 5);
-  applyCheckboxValidationV2_(locSheet, 4);
-  applyCheckboxValidationV2_(ss.getSheetByName(IBS.SHEET_BAHAN), 5);
-  applyCheckboxValidationV2_(ss.getSheetByName(IBS.SHEET_TARIF), 5);
+  // Format mata uang & persentase pada VARIASI_PRODUK dan OPERATION_LOG
+  var shVar = ss.getSheetByName(IBS.SHEET_VARIANTS);
+  shVar.getRange('H2:J').setNumberFormat('#,##0');
+  shVar.getRange('K2:K').setNumberFormat('0.0%');
+  syncVariantMarginFormulas_(shVar);
+
+  var shLog = ss.getSheetByName(IBS.SHEET_LOG);
+  shLog.getRange('O2:R').setNumberFormat('#,##0');
+
+  // Bersihkan checkbox kosong di bawah data terakhir agar getLastRow() akurat
+  cleanAndApplyCheckboxV2_(ss.getSheetByName(IBS.SHEET_MASTER), 3);
+  cleanAndApplyCheckboxV2_(ss.getSheetByName(IBS.SHEET_ATTRIBUTES), 8);
+  cleanAndApplyCheckboxV2_(shVar, 5);
+  cleanAndApplyCheckboxV2_(locSheet, 4);
 
   return true;
 }
 
-function countRealDataRowsV2_(sh) {
-  if (!sh || sh.getLastRow() < 2) return 0;
-  var vals = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
-  var count = 0;
-  for (var i = 0; i < vals.length; i++) {
-    var hasData = false;
-    for (var j = 0; j < vals[i].length; j++) {
-      var v = vals[i][j];
-      if (v !== '' && v !== null && v !== false) {
-        hasData = true;
-        break;
-      }
-    }
-    if (hasData) count++;
+function syncVariantMarginFormulas_(shVar) {
+  var lastRow = shVar.getLastRow();
+  if (lastRow < 2) return;
+  var count = lastRow - 1;
+  var formulasJ = [];
+  var formulasK = [];
+  for (var i = 0; i < count; i++) {
+    var r = i + 2;
+    formulasJ.push(['=IF(I' + r + '>0, I' + r + '-H' + r + ', 0)']);
+    formulasK.push(['=IF(I' + r + '>0, (I' + r + '-H' + r + ')/I' + r + ', 0)']);
   }
-  return count;
+  shVar.getRange(2, 10, count, 1).setFormulas(formulasJ);
+  shVar.getRange(2, 11, count, 1).setFormulas(formulasK);
 }
 
-function cleanEmptyTrailingRowsV2_(sh) {
-  if (!sh) return;
-  var maxRows = sh.getMaxRows();
-  var maxCols = sh.getMaxColumns();
-  if (maxRows < 2 || maxCols < 1) return;
-
-  var vals = sh.getRange(1, 1, maxRows, maxCols).getValues();
+function cleanAndApplyCheckboxV2_(sheet, checkboxCol) {
+  if (!sheet) return;
+  var maxRows = sheet.getMaxRows();
+  var values = sheet.getRange(1, 1, maxRows, 1).getDisplayValues();
   var lastRealRow = 1;
-  for (var i = vals.length - 1; i >= 1; i--) {
-    var hasData = false;
-    for (var j = 0; j < vals[i].length; j++) {
-      var v = vals[i][j];
-      if (v !== '' && v !== null && v !== false) {
-        hasData = true;
-        break;
-      }
-    }
-    if (hasData) {
+  for (var i = values.length - 1; i >= 1; i--) {
+    if (textV2_(values[i][0]) !== '') {
       lastRealRow = i + 1;
       break;
     }
   }
-
   if (maxRows > lastRealRow) {
-    var emptyRange = sh.getRange(lastRealRow + 1, 1, maxRows - lastRealRow, maxCols);
-    emptyRange.clearContent();
+    var emptyRange = sheet.getRange(lastRealRow + 1, 1, maxRows - lastRealRow, sheet.getLastColumn());
     emptyRange.clearDataValidations();
+    emptyRange.clearContent();
   }
+  if (lastRealRow >= 2) {
+    var dataRange = sheet.getRange(2, checkboxCol, lastRealRow - 1, 1);
+    dataRange.setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().setAllowInvalid(false).build());
+  }
+}
+
+function applyRowCheckboxV2_(sheet, startRow, numRows, checkboxCol) {
+  if (!sheet || numRows < 1) return;
+  var range = sheet.getRange(startRow, checkboxCol, numRows, 1);
+  range.setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().setAllowInvalid(false).build());
 }
 
 function ensureSheetHeadersV2_(ss, name, headers) {
@@ -173,18 +149,8 @@ function ensureSheetHeadersV2_(ss, name, headers) {
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
     return sh;
   }
-
   var currentWidth = Math.max(sh.getLastColumn(), 1);
   var current = sh.getRange(1, 1, 1, currentWidth).getDisplayValues()[0].map(function (v) { return String(v).trim(); });
-  var isExactMatch = current.length === headers.length && headers.every(function (h, idx) { return current[idx] === h; });
-
-  // Jika sheet belum memiliki data nyata sama sekali dan headernya masih versi lama, reset ke struktur V4.2
-  if (!isExactMatch && countRealDataRowsV2_(sh) === 0) {
-    sh.getRange(1, 1, 1, Math.max(sh.getMaxColumns(), headers.length)).clearContent();
-    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-    return sh;
-  }
-
   headers.forEach(function (header) {
     if (current.indexOf(header) === -1) {
       current.push(header);
@@ -192,19 +158,6 @@ function ensureSheetHeadersV2_(ss, name, headers) {
     }
   });
   return sh;
-}
-
-function applyCheckboxValidationV2_(sheet, col, startRow, numRows) {
-  if (!sheet) return;
-  var rule = SpreadsheetApp.newDataValidation().requireCheckbox().setAllowInvalid(false).build();
-  if (startRow !== undefined && numRows !== undefined) {
-    if (numRows > 0) sheet.getRange(startRow, col, numRows, 1).setDataValidation(rule);
-    return;
-  }
-  var lastRow = sheet.getLastRow();
-  if (lastRow >= 2) {
-    sheet.getRange(2, col, lastRow - 1, 1).setDataValidation(rule);
-  }
 }
 
 function assertV2SheetsReady_(ss) {
@@ -233,7 +186,7 @@ function isValidLocationV2_(ss, value) {
 }
 
 function doGet() {
-  return jsonResponseV2_(true, 'Ina Basic Store Warehouse API V4.2 aktif.', { version: '4.2' });
+  return jsonResponseV2_(true, 'Ina Basic Store Warehouse API V5.0 (HPP & Profit) aktif.', { version: '5.0' });
 }
 
 function doPost(e) {
@@ -250,12 +203,11 @@ function doPost(e) {
     if (legacy === 'cekproduk') action = 'GET_PRODUCT';
     else if (legacy === 'editproduk') action = 'UPDATE_PRODUCT';
     else if (legacy === 'hapusproduk') action = 'DEACTIVATE_PRODUCT';
-    else return jsonResponseV2_(false, 'Aplikasi lama tidak dapat menulis transaksi ke struktur V4. Perbarui aplikasi ke versi baru.');
+    else return jsonResponseV2_(false, 'Aplikasi lama tidak kompatibel. Perbarui aplikasi ke versi terbaru.');
   }
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // --- READ ENDPOINTS (Tanpa Lock) ---
   if (action === 'GET_PRODUCT') {
     try {
       assertV2SheetsReady_(ss);
@@ -284,27 +236,6 @@ function doPost(e) {
     }
   }
 
-  if (action === 'GET_ACTIVE_WO') {
-    return getActiveWoList_(ss);
-  }
-
-  if (action === 'GET_BAHAN_LIST') {
-    return getBahanList_(ss);
-  }
-
-  if (action === 'GET_DELIVERIES') {
-    return getDeliveriesList_(ss, payload);
-  }
-
-  if (action === 'GET_DATA_FOR_QC') {
-    return getDataForQc_(ss);
-  }
-
-  if (action === 'GET_UNPAID_UPAH') {
-    return getUnpaidUpah_(ss);
-  }
-
-  // --- WRITE ENDPOINTS (Dengan LockService) ---
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(IBS.LOCK_TIMEOUT_MS)) return jsonResponseV2_(false, 'Server sedang memproses transaksi lain. Coba lagi.');
   try {
@@ -322,6 +253,9 @@ function doPost(e) {
         break;
       case 'SET_VARIANT_STATUS':
         result = setVariantStatusActionV2_(ss, payload);
+        break;
+      case 'UPDATE_VARIANT_PRICING':
+        result = updateVariantPricingActionV5_(ss, payload);
         break;
       case 'SAVE_TRANSACTION':
         result = saveStockTransactionV2_(ss, payload);
@@ -341,30 +275,6 @@ function doPost(e) {
       case 'CREATE_WO_JAHIT':
         result = createWoJahit_(ss, payload);
         break;
-      case 'CREATE_BAHAN':
-        result = createBahan_(ss, payload);
-        break;
-      case 'CREATE_DELIVERY_BAHAN':
-        result = createDeliveryBahan_(ss, payload);
-        break;
-      case 'CONFIRM_DELIVERY_BAHAN':
-        result = confirmDeliveryBahan_(ss, payload);
-        break;
-      case 'CREATE_TARIF':
-        result = createTarif_(ss, payload);
-        break;
-      case 'SUBMIT_LAPORAN_JAHIT':
-        result = submitLaporanJahit_(ss, payload);
-        break;
-      case 'SUBMIT_QC_RECEIPT':
-        result = submitQcReceipt_(ss, payload);
-        break;
-      case 'GENERATE_PAY_SLIP':
-        result = generatePaySlip_(ss, payload);
-        break;
-      case 'CALCULATE_HPP':
-        result = calculateHpp_(ss, payload);
-        break;
       default:
         result = { success: false, message: 'Aksi tidak dikenal: ' + action };
     }
@@ -378,7 +288,7 @@ function doPost(e) {
 }
 
 // ==========================================
-// MODUL INTI V2: PRODUK, VARIASI & TRANSAKSI GUDANG
+// MODUL INTI: PRODUK, VARIASI, HPP, HARGA JUAL & TRANSAKSI
 // ==========================================
 function getProductActionV2_(ss, payload) {
   var barcode = textV2_(payload.barcode);
@@ -421,12 +331,21 @@ function composeProductDataV2_(ss, product, includeInactive) {
     stockRows.forEach(function (s) {
       if (textV2_(s.ID_Variasi) === textV2_(r.ID_Variasi)) stocks[textV2_(s.Lokasi_Rak)] = Number(s.Kuantitas) || 0;
     });
+    var hpp = Number(r.HPP) || 0;
+    var hargaJual = Number(r.Harga_Jual) || 0;
+    var marginRp = hargaJual > 0 ? (hargaJual - hpp) : 0;
+    var marginPersen = hargaJual > 0 ? ((hargaJual - hpp) / hargaJual) : 0;
+
     variantList.push({
       id: textV2_(r.ID_Variasi),
       label: textV2_(r.Label_Variasi),
       attributes: attrs,
       active: active,
-      stocks: stocks
+      stocks: stocks,
+      hpp: hpp,
+      harga_jual: hargaJual,
+      margin_rp: marginRp,
+      margin_persen: marginPersen
     });
   });
 
@@ -468,6 +387,9 @@ function createProductActionV2_(ss, payload) {
   var attributes = normalizeAttributesV2_(payload.attributes || []);
   var variants = normalizeVariantsV2_(payload.variants || [], attributes);
   var productActive = booleanV2_(payload.status_aktif, true);
+  var defaultHpp = Math.max(0, Number(payload.default_hpp) || 0);
+  var defaultHargaJual = Math.max(0, Number(payload.default_harga_jual) || 0);
+
   if (!trxId) return { success: false, message: 'ID transaksi wajib diisi.' };
   if (!barcode) return { success: false, message: 'Barcode wajib diisi.' };
   if (!name || name.length < 2) return { success: false, message: 'Nama produk minimal 2 karakter.' };
@@ -485,28 +407,46 @@ function createProductActionV2_(ss, payload) {
   var now = new Date();
   var starts = [];
   try {
-    appendRowsV2_(shMaster, [[barcode, name, productActive, now, now]], starts, 3);
+    var mStart = appendRowsV2_(shMaster, [[barcode, name, productActive, now, now]], starts);
+    applyRowCheckboxV2_(shMaster, mStart, 1, 3);
+
     var attrRows = [];
     attributes.forEach(function (a, ai) {
       a.values.forEach(function (v, vi) {
         attrRows.push([barcode, a.name, a.type, v.value, v.hex || '', ai + 1, vi + 1, true]);
       });
     });
-    if (attrRows.length) appendRowsV2_(shAttrs, attrRows, starts, 8);
+    if (attrRows.length) {
+      var aStart = appendRowsV2_(shAttrs, attrRows, starts);
+      applyRowCheckboxV2_(shAttrs, aStart, attrRows.length, 8);
+    }
 
     var variantRows = [];
     var stockRows = [];
-    variants.forEach(function (v) {
+    var baseVarRow = shVariants.getLastRow() + 1;
+    variants.forEach(function (v, idx) {
       var id = newVariantIdV2_();
       var label = makeVariantLabelV2_(v.attributes, attributes);
-      variantRows.push([id, barcode, label, JSON.stringify(v.attributes), v.active, now, now]);
+      var hppVal = v.hpp !== undefined ? Math.max(0, Number(v.hpp) || 0) : defaultHpp;
+      var hjVal = v.harga_jual !== undefined ? Math.max(0, Number(v.harga_jual) || 0) : defaultHargaJual;
+      var rNum = baseVarRow + idx;
+      variantRows.push([
+        id, barcode, label, JSON.stringify(v.attributes), v.active, now, now,
+        hppVal, hjVal,
+        '=IF(I' + rNum + '>0, I' + rNum + '-H' + rNum + ', 0)',
+        '=IF(I' + rNum + '>0, (I' + rNum + '-H' + rNum + ')/I' + rNum + ', 0)'
+      ]);
       activeLocs.forEach(function (loc) { stockRows.push([id, barcode, loc.value, 0, now]); });
     });
-    appendRowsV2_(shVariants, variantRows, starts, 5);
+    var vStart = appendRowsV2_(shVariants, variantRows, starts);
+    applyRowCheckboxV2_(shVariants, vStart, variantRows.length, 5);
+    shVariants.getRange(vStart, 8, variantRows.length, 3).setNumberFormat('#,##0');
+    shVariants.getRange(vStart, 11, variantRows.length, 1).setNumberFormat('0.0%');
+
     appendRowsV2_(shStock, stockRows, starts);
-    appendRowsV2_(shLog, [[now, trxId, 'ProdukBaru', barcode, '', '', 0, 'SUCCESS', '', name, '', '', name, textV2_(payload.nama_pelapor)]], starts);
+    appendRowsV2_(shLog, [[now, trxId, 'ProdukBaru', barcode, '', '', 0, 'SUCCESS', '', name, '', '', name, textV2_(payload.nama_pelapor), defaultHpp, defaultHargaJual, 0, 0]], starts);
     SpreadsheetApp.flush();
-    return { success: true, message: 'Produk dan ' + variants.length + ' variasi berhasil didaftarkan. Stok awal setiap lokasi = 0.', data: { barcode: barcode, nama: name, jumlah_variasi: variants.length } };
+    return { success: true, message: 'Produk dan ' + variants.length + ' variasi berhasil didaftarkan.', data: { barcode: barcode, nama: name, jumlah_variasi: variants.length } };
   } catch (err) {
     rollbackAppendsV2_(starts);
     throw err;
@@ -516,6 +456,9 @@ function createProductActionV2_(ss, payload) {
 function addVariantsActionV2_(ss, payload) {
   var barcode = textV2_(payload.barcode);
   var trxId = textV2_(payload.transaction_id);
+  var defaultHpp = Math.max(0, Number(payload.default_hpp) || 0);
+  var defaultHargaJual = Math.max(0, Number(payload.default_harga_jual) || 0);
+
   if (!barcode || !trxId) return { success: false, message: 'Barcode dan ID transaksi wajib diisi.' };
   if (trxExistsV2_(ss.getSheetByName(IBS.SHEET_LOG), trxId)) return { success: false, message: 'ID transaksi sudah pernah diproses.' };
   var product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcode);
@@ -576,16 +519,31 @@ function addVariantsActionV2_(ss, payload) {
         if (!alreadyExists) newAttrRows.push([barcode, def.name, def.type, v.value, v.hex || '', ai + 1, vi + 1, true]);
       });
     });
-    if (newAttrRows.length) appendRowsV2_(shAttrs, newAttrRows, starts, 8);
+    if (newAttrRows.length) {
+      var aStart = appendRowsV2_(shAttrs, newAttrRows, starts);
+      applyRowCheckboxV2_(shAttrs, aStart, newAttrRows.length, 8);
+    }
+
     var vr = [], sr = [];
-    variants.forEach(function (v) {
+    var baseVarRow = shVariants.getLastRow() + 1;
+    variants.forEach(function (v, idx) {
       var id = newVariantIdV2_();
-      vr.push([id, barcode, makeVariantLabelV2_(v.attributes, mergedDefs), JSON.stringify(v.attributes), v.active, now, now]);
+      var rNum = baseVarRow + idx;
+      vr.push([
+        id, barcode, makeVariantLabelV2_(v.attributes, mergedDefs), JSON.stringify(v.attributes), v.active, now, now,
+        defaultHpp, defaultHargaJual,
+        '=IF(I' + rNum + '>0, I' + rNum + '-H' + rNum + ', 0)',
+        '=IF(I' + rNum + '>0, (I' + rNum + '-H' + rNum + ')/I' + rNum + ', 0)'
+      ]);
       activeLocs.forEach(function (loc) { sr.push([id, barcode, loc.value, 0, now]); });
     });
-    appendRowsV2_(shVariants, vr, starts, 5);
+    var vStart = appendRowsV2_(shVariants, vr, starts);
+    applyRowCheckboxV2_(shVariants, vStart, vr.length, 5);
+    shVariants.getRange(vStart, 8, vr.length, 3).setNumberFormat('#,##0');
+    shVariants.getRange(vStart, 11, vr.length, 1).setNumberFormat('0.0%');
+
     appendRowsV2_(shStock, sr, starts);
-    appendRowsV2_(shLog, [[now, trxId, 'TambahVariasi', barcode, '', '', 0, 'SUCCESS', '', product.name, '', '', product.name, textV2_(payload.nama_pelapor)]], starts);
+    appendRowsV2_(shLog, [[now, trxId, 'TambahVariasi', barcode, '', '', 0, 'SUCCESS', '', product.name, '', '', product.name, textV2_(payload.nama_pelapor), defaultHpp, defaultHargaJual, 0, 0]], starts);
     SpreadsheetApp.flush();
     return { success: true, message: variants.length + ' variasi baru berhasil ditambahkan.' };
   } catch (err) {
@@ -593,6 +551,60 @@ function addVariantsActionV2_(ss, payload) {
     changedVariantRows.forEach(function (x) { try { shVariants.getRange(x.row, 5).setValue(x.oldActive); shVariants.getRange(x.row, 7).setValue(x.oldUpdated); } catch (restoreError) {} });
     throw err;
   }
+}
+
+function updateVariantPricingActionV5_(ss, payload) {
+  var barcode = textV2_(payload.barcode);
+  var items = payload.items || [];
+  var pelapor = textV2_(payload.nama_pelapor) || 'Admin';
+
+  if (!barcode) return { success: false, message: 'Barcode wajib diisi.' };
+  if (!Array.isArray(items) || !items.length) return { success: false, message: 'Tidak ada data harga/HPP yang dikirim.' };
+
+  var product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcode);
+  if (!product) return { success: false, message: 'Produk tidak ditemukan.' };
+
+  var shVar = ss.getSheetByName(IBS.SHEET_VARIANTS);
+  var shLog = ss.getSheetByName(IBS.SHEET_LOG);
+  var varRows = readObjectsV2_(shVar);
+  var rowMap = {};
+  varRows.forEach(function (r) {
+    if (upperV2_(r.Barcode_Induk) === upperV2_(barcode)) {
+      rowMap[textV2_(r.ID_Variasi)] = r;
+    }
+  });
+
+  var now = new Date();
+  var updatedCount = 0;
+
+  items.forEach(function (item) {
+    var vid = textV2_(item.variant_id);
+    var target = rowMap[vid];
+    if (!target) return;
+
+    var hpp = Math.max(0, Number(item.hpp) || 0);
+    var hargaJual = Math.max(0, Number(item.harga_jual) || 0);
+    var rNum = target._row;
+
+    shVar.getRange(rNum, 7).setValue(now);
+    shVar.getRange(rNum, 8, 1, 4).setValues([[
+      hpp,
+      hargaJual,
+      '=IF(I' + rNum + '>0, I' + rNum + '-H' + rNum + ', 0)',
+      '=IF(I' + rNum + '>0, (I' + rNum + '-H' + rNum + ')/I' + rNum + ', 0)'
+    ]]);
+    shVar.getRange(rNum, 8, 1, 3).setNumberFormat('#,##0');
+    shVar.getRange(rNum, 11).setNumberFormat('0.0%');
+    updatedCount++;
+  });
+
+  if (updatedCount > 0) {
+    var trxId = textV2_(payload.transaction_id) || ('PRICE-' + Utilities.getUuid().substring(0, 8).toUpperCase());
+    shLog.appendRow([now, trxId, 'UpdateHargaHPP', barcode, '', '', updatedCount, 'SUCCESS', '', product.name, '', updatedCount + ' variasi', product.name + ' (Update HPP & Harga)', pelapor, 0, 0, 0, 0]);
+  }
+
+  SpreadsheetApp.flush();
+  return { success: true, message: 'HPP & Harga Jual berhasil diperbarui untuk ' + updatedCount + ' variasi.' };
 }
 
 function updateProductActionV2_(ss, payload) {
@@ -615,7 +627,7 @@ function updateProductActionV2_(ss, payload) {
     if (name) sh.getRange(product.row, 2).setValue(name);
     sh.getRange(product.row, 3).setValue(active);
     sh.getRange(product.row, 5).setValue(now);
-    log.appendRow([now, trxId, 'EditProduk', barcode, '', '', 0, 'SUCCESS', '', name || product.name, '', '', name || product.name, textV2_(payload.nama_pelapor)]);
+    log.appendRow([now, trxId, 'EditProduk', barcode, '', '', 0, 'SUCCESS', '', name || product.name, '', '', name || product.name, textV2_(payload.nama_pelapor), 0, 0, 0, 0]);
     SpreadsheetApp.flush();
     return { success: true, message: 'Data produk berhasil diperbarui.' };
   } catch (err) {
@@ -644,7 +656,7 @@ function setVariantStatusActionV2_(ss, payload) {
   try {
     sh.getRange(row.row, 5).setValue(active);
     sh.getRange(row.row, 7).setValue(now);
-    log.appendRow([now, trxId, 'StatusVariasi', barcode, '', '', 0, 'SUCCESS', variantId, product.name, JSON.stringify(row.attributes || {}), row.label, product.name + ' · ' + row.label, textV2_(payload.nama_pelapor)]);
+    log.appendRow([now, trxId, 'StatusVariasi', barcode, '', '', 0, 'SUCCESS', variantId, product.name, JSON.stringify(row.attributes || {}), row.label, product.name + ' · ' + row.label, textV2_(payload.nama_pelapor), row.hpp, row.harga_jual, 0, 0]);
     SpreadsheetApp.flush();
     return { success: true, message: active ? 'Variasi diaktifkan.' : 'Variasi dinonaktifkan.' };
   } catch (err) {
@@ -689,6 +701,20 @@ function saveStockTransactionV2_(ss, payload) {
     return { success: false, message: 'Stok ' + variant.label + ' di ' + from + ' tidak cukup. Tersedia: ' + available };
   }
 
+  // Hitung nilai finansial berdasarkan HPP & Harga Jual variasi (atau override harga jual saat Keluar)
+  var hppSatuan = variant.hpp || 0;
+  var hargaJualSatuan = 0;
+  var totalOmzet = 0;
+  var totalProfit = 0;
+
+  if (action === 'Keluar') {
+    hargaJualSatuan = (payload.harga_jual !== undefined && payload.harga_jual !== '' && Number(payload.harga_jual) >= 0)
+      ? Number(payload.harga_jual)
+      : (variant.harga_jual || 0);
+    totalOmzet = qty * hargaJualSatuan;
+    totalProfit = hargaJualSatuan > 0 ? (qty * (hargaJualSatuan - hppSatuan)) : 0;
+  }
+
   var changes = [];
   var now = new Date();
   try {
@@ -700,17 +726,179 @@ function saveStockTransactionV2_(ss, payload) {
       changes.push(writeStockQuantityV2_(stockSheet, variantId, barcode, to, toQty + qty, now));
     }
     var display = product.name + (variant.label ? ' · ' + variant.label : '');
-    shLog.appendRow([now, trxId, action, barcode, from, to, qty, 'SUCCESS', variantId, product.name, JSON.stringify(variant.attributes || {}), variant.label, display, pelapor]);
+    shLog.appendRow([
+      now, trxId, action, barcode, from, to, qty, 'SUCCESS', variantId,
+      product.name, JSON.stringify(variant.attributes || {}), variant.label, display, pelapor,
+      hppSatuan, hargaJualSatuan, totalOmzet, totalProfit
+    ]);
+    var lastLogRow = shLog.getLastRow();
+    shLog.getRange(lastLogRow, 15, 1, 4).setNumberFormat('#,##0');
+
     SpreadsheetApp.flush();
-    return { success: true, message: 'Transaksi ' + action.toLowerCase() + ' berhasil disimpan.', data: { barcode: barcode, nama: product.name, variant_id: variantId, variasi: variant.label } };
+    return {
+      success: true,
+      message: 'Transaksi ' + action.toLowerCase() + ' berhasil disimpan.',
+      data: {
+        barcode: barcode,
+        nama: product.name,
+        variant_id: variantId,
+        variasi: variant.label,
+        total_omzet: totalOmzet,
+        total_profit: totalProfit
+      }
+    };
   } catch (err) {
     rollbackStockChangesV2_(stockSheet, changes);
     throw err;
   }
 }
 
+function normalizeAttributesV2_(input) {
+  if (!Array.isArray(input)) throw new Error('Format atribut produk tidak valid.');
+  if (input.length > 6) throw new Error('Maksimal 6 atribut per produk pada versi ini.');
+  var seen = {};
+  return input.map(function (a, index) {
+    var name = textV2_(a.name);
+    var type = textV2_(a.type || 'text').toLowerCase();
+    if (!name) throw new Error('Nama atribut ke-' + (index + 1) + ' wajib diisi.');
+    if (seen[name.toLowerCase()]) throw new Error('Nama atribut tidak boleh duplikat: ' + name);
+    seen[name.toLowerCase()] = true;
+    if (['text', 'color'].indexOf(type) === -1) throw new Error('Tipe atribut hanya boleh text atau color.');
+    if (!Array.isArray(a.values) || !a.values.length) throw new Error('Atribut ' + name + ' harus memiliki minimal satu nilai.');
+    var valueSeen = {};
+    var values = a.values.map(function (v) {
+      var value = textV2_(typeof v === 'string' ? v : v.value);
+      var hex = typeof v === 'string' ? '' : textV2_(v.hex);
+      if (!value) throw new Error('Nilai atribut ' + name + ' tidak boleh kosong.');
+      if (valueSeen[value.toLowerCase()]) throw new Error('Nilai atribut duplikat: ' + value + ' pada ' + name);
+      valueSeen[value.toLowerCase()] = true;
+      if (type === 'color' && hex && !/^#[0-9a-fA-F]{6}$/.test(hex)) throw new Error('Kode warna ' + value + ' harus berformat HEX #RRGGBB.');
+      if (type === 'color' && !hex) throw new Error('Kode HEX wajib diisi untuk nilai warna ' + value + '.');
+      return { value: value, hex: hex };
+    });
+    return { name: name, type: type, values: values };
+  });
+}
+
+function normalizeVariantsV2_(input, attributes) {
+  if (!Array.isArray(input)) throw new Error('Format kombinasi variasi tidak valid.');
+  if (input.length > 300) throw new Error('Maksimal 300 kombinasi variasi dalam satu permintaan.');
+  var attrNames = attributes.map(function (a) { return a.name; });
+  var seen = {};
+  return input.map(function (v) {
+    var attrs = v.attributes || {};
+    var normalized = {};
+    attrNames.forEach(function (name) {
+      var value = textV2_(attrs[name]);
+      var definition = attributes.filter(function (a) { return a.name === name; })[0];
+      if (!value || !definition.values.some(function (x) { return x.value === value; })) throw new Error('Nilai kombinasi tidak valid untuk atribut ' + name + '.');
+      normalized[name] = value;
+    });
+    Object.keys(attrs).forEach(function (key) {
+      if (attrNames.indexOf(key) === -1) throw new Error('Atribut tidak dikenal: ' + key);
+    });
+    var key = variantKeyV2_(normalized, attributes);
+    if (seen[key]) throw new Error('Kombinasi variasi duplikat: ' + makeVariantLabelV2_(normalized, attributes));
+    seen[key] = true;
+    return {
+      attributes: normalized,
+      active: booleanV2_(v.active, true),
+      hpp: v.hpp,
+      harga_jual: v.harga_jual
+    };
+  });
+}
+
+function variantKeyV2_(attrs, definitions) {
+  return definitions.map(function (d) { return d.name + '=' + textV2_(attrs[d.name]).toLowerCase(); }).join('|');
+}
+
+function makeVariantLabelV2_(attrs, definitions) {
+  if (!definitions.length) return 'Standar';
+  return definitions.map(function (d) { return d.name + ': ' + textV2_(attrs[d.name]); }).join(' · ');
+}
+
+function appendRowsV2_(sheet, rows, starts) {
+  if (!rows || !rows.length) return 0;
+  var start = sheet.getLastRow() + 1;
+  sheet.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
+  starts.push({ sheet: sheet, start: start, count: rows.length });
+  return start;
+}
+
+function rollbackAppendsV2_(starts) {
+  for (var i = starts.length - 1; i >= 0; i--) {
+    var x = starts[i];
+    try { x.sheet.deleteRows(x.start, x.count); } catch (e) { console.error('Rollback append error: ' + e); }
+  }
+}
+
+function trxExistsV2_(logSheet, trxId) {
+  if (!trxId || logSheet.getLastRow() < 2) return false;
+  var ids = logSheet.getRange(2, 2, logSheet.getLastRow() - 1, 1).getDisplayValues();
+  return ids.some(function (r) { return textV2_(r[0]) === trxId; });
+}
+
+function newVariantIdV2_() {
+  return 'VAR-' + Utilities.getUuid().replace(/-/g, '').substring(0, 12).toUpperCase();
+}
+
+function parseJsonObjectV2_(value) {
+  if (!value) return {};
+  try {
+    var parsed = JSON.parse(String(value));
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch (e) { return {}; }
+}
+
+function jsonResponseV2_(success, message, data) {
+  var result = { success: !!success, message: message || '' };
+  if (data !== undefined) result.data = data;
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
 // ==========================================
-// MODUL FASE 2: STOCK OPNAME SESI (PERBAIKAN SELISIH BERTANDA)
+// MODUL WORK ORDER JAHIT (TANPA MASTER BAHAN)
+// ==========================================
+function createWoJahit_(ss, payload) {
+  var nomorWo = textV2_(payload.nomor_wo) || ('WO-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100));
+  var timLabel = textV2_(payload.tim_label);
+  var lokasiAsal = textV2_(payload.lokasi_asal_bahan);
+  var lokasiTujuan = textV2_(payload.lokasi_tujuan);
+  var tanggalTarget = textV2_(payload.tanggal_target);
+  var catatan = textV2_(payload.catatan);
+  var pelapor = textV2_(payload.nama_pelapor);
+  var items = payload.items || [];
+
+  if (!timLabel || !lokasiAsal || !pelapor) return { success: false, message: 'Tim/Label, lokasi asal, dan nama pelapor wajib diisi.' };
+  if (!isValidLocationV2_(ss, lokasiAsal)) return { success: false, message: 'Lokasi asal tidak valid.' };
+  if (!items.length) return { success: false, message: 'Minimal harus ada 1 target item pada Work Order.' };
+
+  var woId = 'WOJ-' + Utilities.getUuid().split('-')[0].toUpperCase();
+  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
+  var shItem = ss.getSheetByName(IBS.SHEET_WO_JAHIT_ITEM);
+  var now = new Date();
+
+  shWo.appendRow([woId, nomorWo, 'DRAFT', timLabel, lokasiAsal, lokasiTujuan, tanggalTarget, catatan, pelapor, now]);
+
+  var itemRows = [];
+  items.forEach(function (item, idx) {
+    var itemId = woId + '-ITM-' + (idx + 1);
+    var deskripsi = textV2_(item.deskripsi);
+    var qty = Number(item.target_qty) || 0;
+    itemRows.push([itemId, woId, deskripsi, qty, textV2_(item.catatan)]);
+  });
+
+  if (itemRows.length) {
+    shItem.getRange(shItem.getLastRow() + 1, 1, itemRows.length, itemRows[0].length).setValues(itemRows);
+  }
+
+  SpreadsheetApp.flush();
+  return { success: true, message: 'Work Order Jahit berhasil dibuat.', data: { wo_id: woId, nomor_wo: nomorWo } };
+}
+
+// ==========================================
+// MODUL STOCK OPNAME SESI
 // ==========================================
 function getOpnameSessions_(ss) {
   var sh = ss.getSheetByName(IBS.SHEET_OPNAME_SESI);
@@ -802,6 +990,7 @@ function approveOpnameSession_(ss, payload) {
 
   var shStock = ss.getSheetByName(IBS.SHEET_STOCK);
   var shLog = ss.getSheetByName(IBS.SHEET_LOG);
+  var shVar = ss.getSheetByName(IBS.SHEET_VARIANTS);
   var now = new Date();
   var changes = [];
   var logRows = [];
@@ -811,24 +1000,24 @@ function approveOpnameSession_(ss, payload) {
       var variantId = textV2_(c.ID_Variasi);
       var barcode = textV2_(c.Barcode);
       var qtyFisik = Number(c.Qty_Fisik);
-      // Bandingkan dengan stok aktual saat approve agar mutasi di tengah sesi tidak hilang
-      var liveStockRow = findStockRowV2_(shStock, variantId, loc);
-      var qtyAktualSistem = liveStockRow ? liveStockRow.qty : Number(c.Qty_Sistem_Snapshot);
-      var diff = qtyFisik - qtyAktualSistem;
+      var qtySistem = Number(c.Qty_Sistem_Snapshot);
+      var diff = qtyFisik - qtySistem;
 
       if (diff !== 0) {
         changes.push(writeStockQuantityV2_(shStock, variantId, barcode, loc, qtyFisik, now));
         var trxId = 'OPN-ADJ-' + Utilities.getUuid().substring(0, 8);
         var product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcode);
+        var variant = findVariantRowV2_(shVar, variantId);
         var display = (product ? product.name : barcode) + ' · ' + textV2_(c.Label_Variasi);
-        var statusNote = diff > 0 ? ('SURPLUS (+' + diff + ')') : ('MINUS (' + diff + ')');
-        logRows.push([now, trxId, 'Opname', barcode, loc, loc, diff, statusNote, variantId, product ? product.name : barcode, '', textV2_(c.Label_Variasi), display, pelapor]);
+        var hppSatuan = variant ? variant.hpp : 0;
+        logRows.push([now, trxId, 'Opname', barcode, loc, loc, diff, 'SUCCESS', variantId, product ? product.name : barcode, '', textV2_(c.Label_Variasi), display, pelapor, hppSatuan, 0, 0, 0]);
       }
     });
 
     if (logRows.length) {
       var start = shLog.getLastRow() + 1;
       shLog.getRange(start, 1, logRows.length, logRows[0].length).setValues(logRows);
+      shLog.getRange(start, 15, logRows.length, 4).setNumberFormat('#,##0');
     }
 
     shSesi.getRange(sesi._row, 4).setValue('COMPLETED');
@@ -843,558 +1032,8 @@ function approveOpnameSession_(ss, payload) {
 }
 
 // ==========================================
-// MODUL FASE 3: WORK ORDER, BAHAN & PENGIRIMAN
+// DATA HELPER FUNCTIONS
 // ==========================================
-function getActiveWoList_(ss) {
-  try {
-    var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-    if (!shWo || shWo.getLastRow() < 2) return jsonResponseV2_(true, 'Belum ada WO', { wo_list: [] });
-    var rows = readObjectsV2_(shWo).filter(function (w) {
-      var st = upperV2_(w.Status);
-      return st !== 'COMPLETED' && st !== 'CANCELLED';
-    }).map(function (w) {
-      return {
-        wo_id: textV2_(w.WO_ID),
-        nomor_wo: textV2_(w.Nomor_WO),
-        status: textV2_(w.Status),
-        tim_label: textV2_(w.Tim_Label),
-        lokasi_asal: textV2_(w.Lokasi_Asal_Bahan),
-        lokasi_tujuan: textV2_(w.Lokasi_Tujuan),
-        tanggal_target: w.Tanggal_Target
-      };
-    });
-    return jsonResponseV2_(true, 'Daftar WO aktif.', { wo_list: rows });
-  } catch (e) {
-    return jsonResponseV2_(false, e.message);
-  }
-}
-
-function getBahanList_(ss) {
-  try {
-    var sh = ss.getSheetByName(IBS.SHEET_BAHAN);
-    if (!sh || sh.getLastRow() < 2) return jsonResponseV2_(true, 'Belum ada master bahan', { bahan_list: [] });
-    var rows = readObjectsV2_(sh).filter(function (b) {
-      return booleanV2_(b.Status_Aktif, true);
-    }).map(function (b) {
-      return {
-        kode_bahan: textV2_(b.Kode_Bahan),
-        nama_bahan: textV2_(b.Nama_Bahan),
-        satuan: textV2_(b.Satuan),
-        estimasi_cost: Number(b.Estimasi_Cost) || 0
-      };
-    });
-    return jsonResponseV2_(true, 'Daftar master bahan.', { bahan_list: rows });
-  } catch (e) {
-    return jsonResponseV2_(false, e.message);
-  }
-}
-
-function getDeliveriesList_(ss, payload) {
-  try {
-    var sh = ss.getSheetByName(IBS.SHEET_DELIVERY_BAHAN);
-    if (!sh || sh.getLastRow() < 2) return jsonResponseV2_(true, 'Belum ada pengiriman', { deliveries: [] });
-    var onlyTransit = payload && payload.only_in_transit === true;
-    var rows = readObjectsV2_(sh).filter(function (d) {
-      if (onlyTransit) return upperV2_(d.Status) === 'IN_TRANSIT';
-      return true;
-    }).map(function (d) {
-      return {
-        delivery_id: textV2_(d.Delivery_ID),
-        wo_id: textV2_(d.WO_ID),
-        kode_bahan: textV2_(d.Kode_Bahan),
-        qty_rencana: Number(d.Qty_Rencana) || 0,
-        qty_aktual_kirim: Number(d.Qty_Aktual_Kirim) || 0,
-        kurir: textV2_(d.Kurir),
-        penerima: textV2_(d.Penerima),
-        qty_terima: Number(d.Qty_Terima) || 0,
-        status: textV2_(d.Status),
-        token_qr: textV2_(d.Token_QR)
-      };
-    });
-    return jsonResponseV2_(true, 'Daftar pengiriman bahan.', { deliveries: rows });
-  } catch (e) {
-    return jsonResponseV2_(false, e.message);
-  }
-}
-
-function createWoJahit_(ss, payload) {
-  var nomorWo = textV2_(payload.nomor_wo) || ('WO-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100));
-  var timLabel = textV2_(payload.tim_label);
-  var lokasiAsal = textV2_(payload.lokasi_asal_bahan);
-  var lokasiTujuan = textV2_(payload.lokasi_tujuan);
-  var tanggalTarget = textV2_(payload.tanggal_target);
-  var catatan = textV2_(payload.catatan);
-  var pelapor = textV2_(payload.nama_pelapor);
-  var items = payload.items || [];
-
-  if (!timLabel || !lokasiAsal || !pelapor) return { success: false, message: 'Tim/Label, lokasi asal, dan nama pelapor wajib diisi.' };
-  if (!isValidLocationV2_(ss, lokasiAsal)) return { success: false, message: 'Lokasi asal bahan tidak valid.' };
-  if (!items.length) return { success: false, message: 'Minimal harus ada 1 target item WIP pada Work Order.' };
-
-  var woId = 'WOJ-' + Utilities.getUuid().split('-')[0].toUpperCase();
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var shItem = ss.getSheetByName(IBS.SHEET_WO_JAHIT_ITEM);
-  var now = new Date();
-
-  shWo.appendRow([woId, nomorWo, 'DRAFT', timLabel, lokasiAsal, lokasiTujuan, tanggalTarget, catatan, pelapor, now]);
-
-  var itemRows = [];
-  items.forEach(function (item, idx) {
-    var itemId = woId + '-ITM-' + (idx + 1);
-    var deskripsi = textV2_(item.deskripsi);
-    var qty = Number(item.target_qty) || 0;
-    itemRows.push([itemId, woId, deskripsi, qty, textV2_(item.catatan)]);
-  });
-
-  if (itemRows.length) {
-    shItem.getRange(shItem.getLastRow() + 1, 1, itemRows.length, itemRows[0].length).setValues(itemRows);
-  }
-
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Work Order Jahit berhasil dibuat.', data: { wo_id: woId, nomor_wo: nomorWo } };
-}
-
-function createBahan_(ss, payload) {
-  var kode = textV2_(payload.kode_bahan);
-  var nama = textV2_(payload.nama_bahan);
-  var satuan = textV2_(payload.satuan) || 'kg';
-  var cost = Number(payload.estimasi_cost) || 0;
-  if (!kode || !nama) return { success: false, message: 'Kode dan nama bahan wajib diisi.' };
-
-  var sh = ss.getSheetByName(IBS.SHEET_BAHAN);
-  var rows = readObjectsV2_(sh);
-  if (rows.some(function (r) { return upperV2_(r.Kode_Bahan) === upperV2_(kode); })) {
-    return { success: false, message: 'Kode bahan sudah terdaftar.' };
-  }
-
-  var nextRow = sh.getLastRow() + 1;
-  sh.getRange(nextRow, 1, 1, 6).setValues([[kode, nama, satuan, cost, true, new Date()]]);
-  applyCheckboxValidationV2_(sh, 5, nextRow, 1);
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Master bahan berhasil ditambahkan.' };
-}
-
-function createDeliveryBahan_(ss, payload) {
-  var woId = textV2_(payload.wo_id);
-  var kodeBahan = textV2_(payload.kode_bahan);
-  var qtyRencana = Number(payload.qty_rencana);
-  var qtyAktual = payload.qty_aktual_kirim !== undefined ? Number(payload.qty_aktual_kirim) : qtyRencana;
-  var kurir = textV2_(payload.nama_pelapor);
-
-  if (!woId || !kodeBahan || isNaN(qtyAktual) || qtyAktual <= 0 || !kurir) {
-    return { success: false, message: 'Data pengiriman tidak valid.' };
-  }
-
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var wo = readObjectsV2_(shWo).filter(function (w) { return textV2_(w.WO_ID) === woId || textV2_(w.Nomor_WO) === woId; })[0];
-  if (!wo) return { success: false, message: 'Work Order tidak ditemukan.' };
-
-  var deliveryId = 'DEL-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100);
-  var tokenQr = Utilities.getUuid().substring(0, 12).toUpperCase();
-  var now = new Date();
-
-  // Jika kode_bahan juga terdaftar sebagai produk ber-stok di MASTER_PRODUK, potong stoknya dari Lokasi_Asal_Bahan
-  var prodBahan = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), kodeBahan);
-  if (prodBahan && prodBahan.active) {
-    var variants = readObjectsV2_(ss.getSheetByName(IBS.SHEET_VARIANTS)).filter(function (v) {
-      return upperV2_(v.Barcode_Induk) === upperV2_(kodeBahan) && booleanV2_(v.Status_Aktif, false);
-    });
-    if (variants.length > 0) {
-      var varId = textV2_(variants[0].ID_Variasi);
-      var locAsal = textV2_(wo.Lokasi_Asal_Bahan);
-      var shStock = ss.getSheetByName(IBS.SHEET_STOCK);
-      var stockRow = findStockRowV2_(shStock, varId, locAsal);
-      var avail = stockRow ? stockRow.qty : 0;
-      if (avail < qtyAktual) {
-        return { success: false, message: 'Stok bahan ' + kodeBahan + ' di ' + locAsal + ' tidak cukup (Tersedia: ' + avail + ').' };
-      }
-      writeStockQuantityV2_(shStock, varId, kodeBahan, locAsal, avail - qtyAktual, now);
-      ss.getSheetByName(IBS.SHEET_LOG).appendRow([now, 'TRX-' + deliveryId, 'Keluar', kodeBahan, locAsal, 'Produksi (' + textV2_(wo.Nomor_WO) + ')', qtyAktual, 'SUCCESS', varId, prodBahan.name, '', textV2_(variants[0].Label_Variasi), prodBahan.name, kurir]);
-    }
-  }
-
-  var sh = ss.getSheetByName(IBS.SHEET_DELIVERY_BAHAN);
-  sh.appendRow([deliveryId, textV2_(wo.WO_ID), kodeBahan, qtyRencana || qtyAktual, qtyAktual, kurir, '', 0, 'IN_TRANSIT', tokenQr, now]);
-
-  // Update status WO dari DRAFT ke IN_PROGRESS
-  if (upperV2_(wo.Status) === 'DRAFT') {
-    shWo.getRange(wo._row, 3).setValue('IN_PROGRESS');
-  }
-
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Pengiriman bahan dicatat (' + deliveryId + ').', data: { delivery_id: deliveryId, token: tokenQr } };
-}
-
-function confirmDeliveryBahan_(ss, payload) {
-  var code = textV2_(payload.delivery_id || payload.token_qr);
-  var penerima = textV2_(payload.penerima);
-  var qtyTerima = Number(payload.qty_terima);
-
-  if (!code || !penerima || isNaN(qtyTerima) || qtyTerima <= 0) {
-    return { success: false, message: 'Kode pengiriman, nama penerima, dan qty terima wajib diisi.' };
-  }
-
-  var sh = ss.getSheetByName(IBS.SHEET_DELIVERY_BAHAN);
-  var deliv = readObjectsV2_(sh).filter(function (d) {
-    return upperV2_(d.Delivery_ID) === upperV2_(code) || upperV2_(d.Token_QR) === upperV2_(code);
-  })[0];
-
-  if (!deliv) return { success: false, message: 'Data pengiriman bahan tidak ditemukan.' };
-  if (upperV2_(deliv.Status) === 'RECEIVED') return { success: false, message: 'Pengiriman ini sudah pernah dikonfirmasi diterima.' };
-
-  sh.getRange(deliv._row, 7).setValue(penerima);
-  sh.getRange(deliv._row, 8).setValue(qtyTerima);
-  sh.getRange(deliv._row, 9).setValue('RECEIVED');
-
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Penerimaan bahan (' + textV2_(deliv.Kode_Bahan) + ' · ' + qtyTerima + ') berhasil dikonfirmasi.' };
-}
-
-// ==========================================
-// MODUL FASE 4 & 7: TARIF, UPAH, QC & HPP
-// ==========================================
-function createTarif_(ss, payload) {
-  var kode = textV2_(payload.kode_model);
-  var desc = textV2_(payload.deskripsi);
-  var upah = Number(payload.upah) || 0;
-  if (!kode || upah <= 0) return { success: false, message: 'Kode model dan upah wajib diisi (> 0).' };
-
-  var id = 'TRF-' + Math.floor(Math.random() * 900 + 100);
-  var sh = ss.getSheetByName(IBS.SHEET_TARIF);
-  var nextRow = sh.getLastRow() + 1;
-  sh.getRange(nextRow, 1, 1, 6).setValues([[id, kode, desc, upah, true, new Date()]]);
-  applyCheckboxValidationV2_(sh, 5, nextRow, 1);
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Tarif berhasil disimpan.' };
-}
-
-function submitLaporanJahit_(ss, payload) {
-  var trxId = textV2_(payload.transaction_id);
-  var noWo = textV2_(payload.nomor_wo);
-  var penjahit = textV2_(payload.nama_penjahit);
-  var bagus = Number(payload.qty_bagus) || 0;
-  var cacat = Number(payload.qty_cacat) || 0;
-
-  if (!noWo || !penjahit) return { success: false, message: 'Nomor WO dan nama penjahit wajib diisi.' };
-  if (bagus + cacat <= 0) return { success: false, message: 'Total kuantitas laporan minimal 1.' };
-
-  var shRep = ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT);
-  if (trxId && readObjectsV2_(shRep).some(function (r) { return textV2_(r.Report_ID) === trxId; })) {
-    return { success: false, message: 'Laporan ini sudah pernah dikirim.' };
-  }
-
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var wo = readObjectsV2_(shWo).filter(function (w) {
-    return upperV2_(w.Nomor_WO) === upperV2_(noWo) || upperV2_(w.WO_ID) === upperV2_(noWo);
-  })[0];
-  if (!wo) return { success: false, message: 'Nomor WO tidak ditemukan di sistem.' };
-  if (upperV2_(wo.Status) === 'COMPLETED') return { success: false, message: 'WO ini sudah ditutup (COMPLETED).' };
-
-  var reportId = trxId || ('REP-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100));
-  shRep.appendRow([
-    reportId, textV2_(wo.WO_ID), penjahit, textV2_(wo.Tim_Label), bagus, cacat, 'PENDING', new Date()
-  ]);
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Laporan jahit berhasil dikirim (' + reportId + ').', data: { report_id: reportId } };
-}
-
-function getDataForQc_(ss) {
-  try {
-    var reports = readObjectsV2_(ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT)).filter(function (r) { return upperV2_(r.Status) === 'PENDING'; });
-    var tarifs = readObjectsV2_(ss.getSheetByName(IBS.SHEET_TARIF)).filter(function (t) { return booleanV2_(t.Status_Aktif, true); });
-    return jsonResponseV2_(true, 'Data loaded', { pending_reports: reports, tarifs: tarifs });
-  } catch (e) {
-    return jsonResponseV2_(false, e.message);
-  }
-}
-
-function submitQcReceipt_(ss, payload) {
-  var trxId = textV2_(payload.transaction_id);
-  var reportId = textV2_(payload.report_id);
-  var tarifId = textV2_(payload.tarif_id);
-  var variantId = textV2_(payload.variant_id);
-  var barcode = textV2_(payload.barcode);
-  var lolos = Number(payload.qty_lolos) || 0;
-  var gagal = Number(payload.qty_gagal) || 0;
-  var namaQc = textV2_(payload.nama_qc);
-
-  if (!reportId || !tarifId || !variantId || !barcode || !namaQc) {
-    return { success: false, message: 'Data QC tidak lengkap.' };
-  }
-
-  var shLog = ss.getSheetByName(IBS.SHEET_LOG);
-  if (trxId && trxExistsV2_(shLog, trxId)) return { success: false, message: 'Transaksi QC ini sudah pernah diproses.' };
-
-  var shRep = ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT);
-  var report = readObjectsV2_(shRep).filter(function (r) { return textV2_(r.Report_ID) === reportId; })[0];
-  if (!report) return { success: false, message: 'Laporan tidak ditemukan.' };
-  if (upperV2_(report.Status) !== 'PENDING') return { success: false, message: 'Laporan ini sudah selesai di-QC.' };
-
-  var tarif = readObjectsV2_(ss.getSheetByName(IBS.SHEET_TARIF)).filter(function (t) { return textV2_(t.ID_Tarif) === tarifId; })[0];
-  if (!tarif) return { success: false, message: 'Tarif upah tidak ditemukan.' };
-  var upahPerPcs = Number(tarif.Upah_Per_Pcs) || 0;
-  var totalUpah = lolos * upahPerPcs;
-
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var wo = readObjectsV2_(shWo).filter(function (w) { return textV2_(w.WO_ID) === textV2_(report.WO_ID); })[0];
-  var locTo = (wo && textV2_(wo.Lokasi_Tujuan)) ? textV2_(wo.Lokasi_Tujuan) : 'Rak Utama';
-  var now = new Date();
-  var qcId = 'QC-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100);
-
-  var shStock = ss.getSheetByName(IBS.SHEET_STOCK);
-  var product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcode);
-  var variant = findVariantRowV2_(ss.getSheetByName(IBS.SHEET_VARIANTS), variantId);
-  if (!product || !variant) return { success: false, message: 'Produk atau variasi WIP tidak valid.' };
-
-  if (lolos > 0) {
-    var stockRow = findStockRowV2_(shStock, variantId, locTo);
-    var qtyAwal = stockRow ? stockRow.qty : 0;
-    writeStockQuantityV2_(shStock, variantId, barcode, locTo, qtyAwal + lolos, now);
-
-    var display = product.name + (variant.label ? ' · ' + variant.label : '');
-    shLog.appendRow([now, trxId || ('TRX-' + qcId), 'Masuk', barcode, 'Produksi (' + textV2_(report.WO_ID) + ')', locTo, lolos, 'SUCCESS', variantId, product.name, JSON.stringify(variant.attributes || {}), variant.label, display, namaQc]);
-  }
-
-  ss.getSheetByName(IBS.SHEET_PENERIMAAN_QC).appendRow([
-    qcId, reportId, textV2_(report.WO_ID), textV2_(report.Tim_Penjahit), lolos, gagal, variantId, totalUpah, 'UNPAID', '', namaQc, now
-  ]);
-
-  shRep.getRange(report._row, 7).setValue('REVIEWED');
-  if (wo && upperV2_(wo.Status) !== 'COMPLETED') {
-    shWo.getRange(wo._row, 3).setValue('QC_PROCESS');
-  }
-
-  SpreadsheetApp.flush();
-  return { success: true, message: 'QC Selesai (' + lolos + ' masuk ' + locTo + '). Upah: Rp ' + totalUpah.toLocaleString('id-ID') };
-}
-
-function getUnpaidUpah_(ss) {
-  try {
-    var qcData = readObjectsV2_(ss.getSheetByName(IBS.SHEET_PENERIMAAN_QC)).filter(function (q) { return upperV2_(q.Status_Pembayaran) === 'UNPAID'; });
-    var grouped = {};
-    qcData.forEach(function (q) {
-      var tim = textV2_(q.Tim_Penjahit) || 'Tanpa Tim';
-      if (!grouped[tim]) grouped[tim] = { tim: tim, count: 0, total_qty: 0, total_upah: 0 };
-      grouped[tim].count += 1;
-      grouped[tim].total_qty += (Number(q.Qty_Lolos) || 0);
-      grouped[tim].total_upah += (Number(q.Nilai_Upah) || 0);
-    });
-    var result = Object.keys(grouped).map(function (k) { return grouped[k]; });
-    return jsonResponseV2_(true, 'Data upah', { unpaid: result });
-  } catch (e) {
-    return jsonResponseV2_(false, e.message);
-  }
-}
-
-function generatePaySlip_(ss, payload) {
-  var tim = textV2_(payload.tim_penjahit);
-  var pelapor = textV2_(payload.nama_admin);
-  if (!tim || !pelapor) return { success: false, message: 'Tim penjahit dan nama admin wajib diisi.' };
-
-  var shQc = ss.getSheetByName(IBS.SHEET_PENERIMAAN_QC);
-  var toPay = readObjectsV2_(shQc).filter(function (q) {
-    return upperV2_(q.Status_Pembayaran) === 'UNPAID' && (textV2_(q.Tim_Penjahit) || 'Tanpa Tim') === tim;
-  });
-
-  if (!toPay.length) return { success: false, message: 'Tidak ada tagihan untuk tim ini.' };
-
-  var totalLolos = 0;
-  var totalUpah = 0;
-  var minDate = null;
-  var maxDate = null;
-
-  toPay.forEach(function (q) {
-    totalLolos += (Number(q.Qty_Lolos) || 0);
-    totalUpah += (Number(q.Nilai_Upah) || 0);
-    var dt = q.Created_At instanceof Date ? q.Created_At : new Date(q.Created_At);
-    if (!isNaN(dt.getTime())) {
-      if (!minDate || dt < minDate) minDate = dt;
-      if (!maxDate || dt > maxDate) maxDate = dt;
-    }
-  });
-
-  var now = new Date();
-  var slipId = 'SLIP-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100);
-
-  toPay.forEach(function (q) {
-    shQc.getRange(q._row, 9).setValue('PAID');
-    shQc.getRange(q._row, 10).setValue(slipId);
-  });
-
-  ss.getSheetByName(IBS.SHEET_REKAP_UPAH).appendRow([
-    slipId, tim, minDate || now, maxDate || now, totalLolos, totalUpah, 'PAID', now, pelapor, now
-  ]);
-
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Slip gaji ' + slipId + ' berhasil dibuat & dilunasi (Rp ' + totalUpah.toLocaleString('id-ID') + ').' };
-}
-
-function calculateHpp_(ss, payload) {
-  var noWo = textV2_(payload.nomor_wo);
-  var overhead = Number(payload.biaya_overhead) || 0;
-  if (!noWo) return { success: false, message: 'Nomor WO wajib diisi.' };
-
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var wo = readObjectsV2_(shWo).filter(function (w) {
-    return upperV2_(w.Nomor_WO) === upperV2_(noWo) || upperV2_(w.WO_ID) === upperV2_(noWo);
-  })[0];
-  if (!wo) return { success: false, message: 'WO tidak ditemukan.' };
-  if (upperV2_(wo.Status) === 'COMPLETED') return { success: false, message: 'WO ini sudah pernah ditutup dan dihitung HPP-nya.' };
-
-  var woId = textV2_(wo.WO_ID);
-
-  // 1. Hitung Total Cost Bahan dari PENGIRIMAN_BAHAN x MASTER_BAHAN
-  var bahanMap = {};
-  readObjectsV2_(ss.getSheetByName(IBS.SHEET_BAHAN)).forEach(function (b) {
-    bahanMap[upperV2_(b.Kode_Bahan)] = Number(b.Estimasi_Cost) || 0;
-  });
-
-  var deliveries = readObjectsV2_(ss.getSheetByName(IBS.SHEET_DELIVERY_BAHAN)).filter(function (d) {
-    return textV2_(d.WO_ID) === woId;
-  });
-
-  var totalCostBahan = 0;
-  deliveries.forEach(function (d) {
-    var qtyPakai = (Number(d.Qty_Terima) > 0) ? Number(d.Qty_Terima) : (Number(d.Qty_Aktual_Kirim) || 0);
-    var unitCost = bahanMap[upperV2_(d.Kode_Bahan)] || 0;
-    totalCostBahan += (qtyPakai * unitCost);
-  });
-
-  // 2. Hitung Total Cost Jahit & Qty Lolos dari PENERIMAAN_QC
-  var qcRows = readObjectsV2_(ss.getSheetByName(IBS.SHEET_PENERIMAAN_QC)).filter(function (q) {
-    return textV2_(q.WO_ID) === woId;
-  });
-  var totalCostJahit = 0;
-  var totalQtyLolos = 0;
-  qcRows.forEach(function (q) {
-    totalCostJahit += (Number(q.Nilai_Upah) || 0);
-    totalQtyLolos += (Number(q.Qty_Lolos) || 0);
-  });
-
-  if (totalQtyLolos <= 0) return { success: false, message: 'Qty Lolos QC masih 0. Selesaikan proses QC terlebih dahulu.' };
-
-  var totalModal = totalCostBahan + totalCostJahit + overhead;
-  var hppPerPcs = Math.round(totalModal / totalQtyLolos);
-  var now = new Date();
-  var hppId = 'HPP-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100);
-
-  ss.getSheetByName(IBS.SHEET_HPP).appendRow([
-    hppId, woId, totalCostBahan, totalCostJahit + overhead, totalQtyLolos, hppPerPcs, now
-  ]);
-  shWo.getRange(wo._row, 3).setValue('COMPLETED');
-
-  SpreadsheetApp.flush();
-  return {
-    success: true,
-    message: 'HPP Berhasil dihitung: Rp ' + hppPerPcs.toLocaleString('id-ID') + ' /pcs (Bahan: Rp ' + totalCostBahan.toLocaleString('id-ID') + ', Jahit: Rp ' + totalCostJahit.toLocaleString('id-ID') + ').',
-    data: { hpp_id: hppId, hpp_per_pcs: hppPerPcs, total_cost_bahan: totalCostBahan, total_cost_jahit: totalCostJahit, qty_lolos: totalQtyLolos }
-  };
-}
-
-// ==========================================
-// HELPER UTILITIES & VALIDATION
-// ==========================================
-function normalizeAttributesV2_(input) {
-  if (!Array.isArray(input)) throw new Error('Format atribut produk tidak valid.');
-  if (input.length > 6) throw new Error('Maksimal 6 atribut per produk pada versi ini.');
-  var seen = {};
-  return input.map(function (a, index) {
-    var name = textV2_(a.name);
-    var type = textV2_(a.type || 'text').toLowerCase();
-    if (!name) throw new Error('Nama atribut ke-' + (index + 1) + ' wajib diisi.');
-    if (seen[name.toLowerCase()]) throw new Error('Nama atribut tidak boleh duplikat: ' + name);
-    seen[name.toLowerCase()] = true;
-    if (['text', 'color'].indexOf(type) === -1) throw new Error('Tipe atribut hanya boleh text atau color.');
-    if (!Array.isArray(a.values) || !a.values.length) throw new Error('Atribut ' + name + ' harus memiliki minimal satu nilai.');
-    var valueSeen = {};
-    var values = a.values.map(function (v) {
-      var value = textV2_(typeof v === 'string' ? v : v.value);
-      var hex = typeof v === 'string' ? '' : textV2_(v.hex);
-      if (!value) throw new Error('Nilai atribut ' + name + ' tidak boleh kosong.');
-      if (valueSeen[value.toLowerCase()]) throw new Error('Nilai atribut duplikat: ' + value + ' pada ' + name);
-      valueSeen[value.toLowerCase()] = true;
-      if (type === 'color' && hex && !/^#[0-9a-fA-F]{6}$/.test(hex)) throw new Error('Kode warna ' + value + ' harus berformat HEX #RRGGBB.');
-      if (type === 'color' && !hex) throw new Error('Kode HEX wajib diisi untuk nilai warna ' + value + '.');
-      return { value: value, hex: hex };
-    });
-    return { name: name, type: type, values: values };
-  });
-}
-
-function normalizeVariantsV2_(input, attributes) {
-  if (!Array.isArray(input)) throw new Error('Format kombinasi variasi tidak valid.');
-  if (input.length > 300) throw new Error('Maksimal 300 kombinasi variasi dalam satu permintaan.');
-  var attrNames = attributes.map(function (a) { return a.name; });
-  var seen = {};
-  return input.map(function (v) {
-    var attrs = v.attributes || {};
-    var normalized = {};
-    attrNames.forEach(function (name) {
-      var value = textV2_(attrs[name]);
-      var definition = attributes.filter(function (a) { return a.name === name; })[0];
-      if (!value || !definition.values.some(function (x) { return x.value === value; })) throw new Error('Nilai kombinasi tidak valid untuk atribut ' + name + '.');
-      normalized[name] = value;
-    });
-    Object.keys(attrs).forEach(function (key) {
-      if (attrNames.indexOf(key) === -1) throw new Error('Atribut tidak dikenal: ' + key);
-    });
-    var key = variantKeyV2_(normalized, attributes);
-    if (seen[key]) throw new Error('Kombinasi variasi duplikat: ' + makeVariantLabelV2_(normalized, attributes));
-    seen[key] = true;
-    return { attributes: normalized, active: booleanV2_(v.active, true) };
-  });
-}
-
-function variantKeyV2_(attrs, definitions) {
-  return definitions.map(function (d) { return d.name + '=' + textV2_(attrs[d.name]).toLowerCase(); }).join('|');
-}
-
-function makeVariantLabelV2_(attrs, definitions) {
-  if (!definitions.length) return 'Standar';
-  return definitions.map(function (d) { return d.name + ': ' + textV2_(attrs[d.name]); }).join(' · ');
-}
-
-function appendRowsV2_(sheet, rows, starts, checkboxCol) {
-  if (!rows || !rows.length) return;
-  var start = sheet.getLastRow() + 1;
-  sheet.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
-  if (checkboxCol) {
-    applyCheckboxValidationV2_(sheet, checkboxCol, start, rows.length);
-  }
-  starts.push({ sheet: sheet, start: start, count: rows.length });
-}
-
-function rollbackAppendsV2_(starts) {
-  for (var i = starts.length - 1; i >= 0; i--) {
-    var x = starts[i];
-    try { x.sheet.deleteRows(x.start, x.count); } catch (e) { console.error('Rollback append error: ' + e); }
-  }
-}
-
-function trxExistsV2_(logSheet, trxId) {
-  if (!trxId || logSheet.getLastRow() < 2) return false;
-  var ids = logSheet.getRange(2, 2, logSheet.getLastRow() - 1, 1).getDisplayValues();
-  return ids.some(function (r) { return textV2_(r[0]) === trxId; });
-}
-
-function newVariantIdV2_() {
-  return 'VAR-' + Utilities.getUuid().replace(/-/g, '').substring(0, 12).toUpperCase();
-}
-
-function parseJsonObjectV2_(value) {
-  if (!value) return {};
-  try {
-    var parsed = JSON.parse(String(value));
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-  } catch (e) { return {}; }
-}
-
-function jsonResponseV2_(success, message, data) {
-  var result = { success: !!success, message: message || '' };
-  if (data !== undefined) result.data = data;
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-}
-
 function findMasterV2_(sheet, barcode) {
   var rows = readObjectsV2_(sheet);
   for (var i = 0; i < rows.length; i++) {
@@ -1409,13 +1048,17 @@ function findVariantRowV2_(sheet, variantId) {
   var rows = readObjectsV2_(sheet);
   for (var i = 0; i < rows.length; i++) {
     if (textV2_(rows[i].ID_Variasi) === textV2_(variantId)) {
+      var hpp = Number(rows[i].HPP) || 0;
+      var hargaJual = Number(rows[i].Harga_Jual) || 0;
       return {
         row: rows[i]._row,
         id: textV2_(rows[i].ID_Variasi),
         barcode: textV2_(rows[i].Barcode_Induk),
         label: textV2_(rows[i].Label_Variasi),
         attributes: parseJsonObjectV2_(rows[i].Atribut_JSON),
-        active: booleanV2_(rows[i].Status_Aktif, false)
+        active: booleanV2_(rows[i].Status_Aktif, false),
+        hpp: hpp,
+        harga_jual: hargaJual
       };
     }
   }
@@ -1462,22 +1105,11 @@ function readObjectsV2_(sheet) {
   if (!sheet || sheet.getLastRow() < 2) return [];
   var values = sheet.getRange(1, 1, sheet.getLastRow(), sheet.getLastColumn()).getValues();
   var headers = values[0].map(function (h) { return textV2_(h); });
-  var result = [];
-  for (var i = 1; i < values.length; i++) {
-    var row = values[i];
-    var hasData = false;
-    for (var k = 0; k < row.length; k++) {
-      if (row[k] !== '' && row[k] !== null && row[k] !== false) {
-        hasData = true;
-        break;
-      }
-    }
-    if (!hasData) continue;
-    var obj = { _row: i + 1 };
+  return values.slice(1).map(function (row, i) {
+    var obj = { _row: i + 2 };
     headers.forEach(function (h, j) { if (h) obj[h] = row[j]; });
-    result.push(obj);
-  }
-  return result;
+    return obj;
+  });
 }
 
 function textV2_(val) { return val == null ? '' : String(val).trim(); }
@@ -1488,70 +1120,4 @@ function booleanV2_(val, fallback) {
   if (v === 'TRUE' || v === '1' || v === 'YA' || v === 'AKTIF') return true;
   if (v === 'FALSE' || v === '0' || v === 'TIDAK' || v === 'NONAKTIF') return false;
   return fallback;
-}
-
-function migrateLegacyStockV2() {
-  var lock = LockService.getScriptLock();
-  if (!lock.tryLock(IBS.LOCK_TIMEOUT_MS)) throw new Error('Server sedang sibuk.');
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    assertV2SheetsReady_(ss);
-    var shLegacy = ss.getSheetByName(IBS.SHEET_LEGACY_STOCK);
-    var shMap = ss.getSheetByName(IBS.SHEET_MIGRATION);
-    var shVariants = ss.getSheetByName(IBS.SHEET_VARIANTS);
-    var shNewStock = ss.getSheetByName(IBS.SHEET_STOCK);
-    if (!shLegacy || shLegacy.getLastRow() < 2) throw new Error('Tidak ada data lama pada STOK_LOKASI.');
-    var existingV2Stock = readObjectsV2_(shNewStock);
-    if (existingV2Stock.some(function (r) { return (Number(r.Kuantitas) || 0) !== 0; })) {
-      throw new Error('STOK_VARIASI sudah memiliki saldo non-nol. Migrasi dibatalkan agar stok baru tidak tertimpa.');
-    }
-
-    var legacy = readObjectsV2_(shLegacy);
-    var variantRows = readObjectsV2_(shVariants);
-    var allocations = readObjectsV2_(shMap);
-    var legacyTotals = {};
-    legacy.forEach(function (r) {
-      var key = upperV2_(r.Barcode) + '|' + textV2_(r.Lokasi_Rak);
-      legacyTotals[key] = (legacyTotals[key] || 0) + (Number(r.Kuantitas) || 0);
-    });
-    var allocatedTotals = {};
-    var allocationByKey = {};
-    allocations.forEach(function (r) {
-      var barcode = textV2_(r.Barcode_Induk);
-      var location = textV2_(r.Lokasi_Rak);
-      var variantId = textV2_(r.ID_Variasi);
-      var qty = Number(r.Kuantitas);
-      if (!barcode || !variantId || !isValidLocationV2_(ss, location) || !isFinite(qty) || qty < 0 || Math.floor(qty) !== qty) throw new Error('Ada baris MIGRASI_ALOKASI yang tidak valid pada baris ' + r._row + '.');
-      var variant = variantRows.filter(function (v) { return textV2_(v.ID_Variasi) === variantId; })[0];
-      if (!variant || upperV2_(variant.Barcode_Induk) !== upperV2_(barcode)) throw new Error('ID variasi ' + variantId + ' tidak cocok dengan barcode ' + barcode + '.');
-      var key = upperV2_(barcode) + '|' + location;
-      allocatedTotals[key] = (allocatedTotals[key] || 0) + qty;
-      var stockKey = variantId + '|' + location;
-      if (allocationByKey[stockKey] !== undefined) throw new Error('Alokasi ganda untuk ' + variantId + ' / ' + location + '.');
-      allocationByKey[stockKey] = qty;
-    });
-
-    Object.keys(legacyTotals).forEach(function (key) {
-      if ((allocatedTotals[key] || 0) !== legacyTotals[key]) throw new Error('Total alokasi tidak sama dengan stok lama pada ' + key + '. Lama=' + legacyTotals[key] + ', alokasi=' + (allocatedTotals[key] || 0));
-    });
-    Object.keys(allocatedTotals).forEach(function (key) {
-      if (legacyTotals[key] === undefined && allocatedTotals[key] !== 0) throw new Error('Ditemukan alokasi tanpa pasangan stok lama: ' + key);
-    });
-
-    var activeLocs = getActiveLocationsV2_(ss);
-    var output = [];
-    variantRows.forEach(function (v) {
-      activeLocs.forEach(function (loc) {
-        var key = textV2_(v.ID_Variasi) + '|' + loc.value;
-        output.push([textV2_(v.ID_Variasi), textV2_(v.Barcode_Induk), loc.value, allocationByKey[key] || 0, new Date()]);
-      });
-    });
-    if (!output.length) throw new Error('Belum ada variasi produk untuk dimigrasikan.');
-    if (shNewStock.getLastRow() > 1) shNewStock.getRange(2, 1, shNewStock.getLastRow() - 1, shNewStock.getLastColumn()).clearContent();
-    shNewStock.getRange(2, 1, output.length, output[0].length).setValues(output);
-    SpreadsheetApp.flush();
-    return 'Migrasi selesai. ' + output.length + ' saldo variasi/lokasi dibuat. STOK_LOKASI lama tetap dipertahankan.';
-  } finally {
-    lock.releaseLock();
-  }
 }
