@@ -1,9 +1,7 @@
 /**
- * INA BASIC STORE - Warehouse V5.2 (Caching, Auto-Close WO & Status Lock)
- * Mempertahankan seluruh alur V5.1 dengan tambahan:
- * - CacheService (RAM server) + Endpoint GET_BOOTSTRAP untuk mempercepat loading aplikasi.
- * - Validasi penguncian status final (SELESAI, APPROVED, COMPLETED, BATAL) agar tidak bisa diubah ulang.
- * - Penutupan otomatis sesi WO menjadi SELESAI saat target terpenuhi & penyaringan ketat WO aktif.
+ * INA BASIC STORE - Warehouse V6.0
+ * Modul lengkap Gudang Utama + Gudang Penjahit (MASTER_TAILOR, STOK_TAILOR, LOG_TAILOR)
+ * serta Upah Otomatis & Slip Gaji Penjahit.
  */
 
 var IBS = {
@@ -15,16 +13,19 @@ var IBS = {
   SHEET_LOCATIONS: 'MASTER_LOKASI',
   SHEET_OPNAME_SESI: 'OPNAME_SESI',
   SHEET_OPNAME_DETAIL: 'OPNAME_DETAIL',
-  SHEET_WO_JAHIT: 'WO_JAHIT',
-  SHEET_WO_JAHIT_ITEM: 'WO_JAHIT_ITEM',
   SHEET_LAPORAN_JAHIT: 'LAPORAN_JAHIT',
+  SHEET_MASTER_TAILOR: 'MASTER_TAILOR',
+  SHEET_STOK_TAILOR: 'STOK_TAILOR',
+  SHEET_LOG_TAILOR: 'LOG_TAILOR',
   DEPRECATED_SHEETS: [
     'MASTER_BAHAN',
     'PENGIRIMAN_BAHAN',
     'STOK_BAHAN',
     'LOG_BAHAN',
     'STOK_LOKASI',
-    'MIGRASI_ALOKASI'
+    'MIGRASI_ALOKASI',
+    'WO_JAHIT',
+    'WO_JAHIT_ITEM'
   ],
   LOCK_TIMEOUT_MS: 15000,
   CACHE_TTL_SEC: 120,
@@ -37,9 +38,10 @@ var IBS = {
     MASTER_LOKASI: ['Kode_Lokasi', 'Nama_Lokasi', 'Jenis_Lokasi', 'Status_Aktif', 'Created_At'],
     OPNAME_SESI: ['Session_ID', 'Nama_Sesi', 'Lokasi', 'Status', 'Dibuat_Oleh', 'Waktu_Mulai', 'Waktu_Selesai'],
     OPNAME_DETAIL: ['Detail_ID', 'Session_ID', 'Barcode', 'ID_Variasi', 'Label_Variasi', 'Qty_Sistem_Snapshot', 'Qty_Fisik', 'Nama_Pelapor', 'Waktu', 'Status_Hitung'],
-    WO_JAHIT: ['WO_ID', 'Nomor_WO', 'Status', 'Tim_Label', 'Lokasi_Asal_Bahan', 'Lokasi_Tujuan', 'Tanggal_Target', 'Catatan', 'Dibuat_Oleh', 'Created_At'],
-    WO_JAHIT_ITEM: ['Item_ID', 'WO_ID', 'Model_Warna_Ukuran', 'Target_Qty', 'Catatan'],
-    LAPORAN_JAHIT: ['Report_ID', 'Transaction_ID', 'WO_ID', 'Nomor_WO', 'Nama_Penjahit', 'Qty_Bagus', 'Qty_Cacat', 'Status', 'Waktu_Lapor', 'Qty_Terima', 'Qty_Lolos', 'Qty_Gagal', 'Alasan_Gagal', 'Barcode_WIP', 'ID_Variasi_WIP', 'Lokasi_Tujuan', 'Nama_Penerima', 'Waktu_QC']
+    LAPORAN_JAHIT: ['Report_ID', 'Transaction_ID', 'WO_ID', 'Nomor_WO', 'Nama_Penjahit', 'Qty_Bagus', 'Qty_Cacat', 'Status', 'Waktu_Lapor', 'Qty_Terima', 'Qty_Lolos', 'Qty_Gagal', 'Alasan_Gagal', 'Barcode_WIP', 'ID_Variasi_WIP', 'Lokasi_Tujuan', 'Nama_Penerima', 'Waktu_QC'],
+    MASTER_TAILOR: ['ID_Tailor', 'Barcode_Kategori', 'Nama_Kategori', 'Warna', 'Ukuran', 'Upah_Per_Pcs', 'Barcode_Produk_Tujuan', 'ID_Variasi_Tujuan', 'Status_Aktif'],
+    STOK_TAILOR: ['ID_Tailor', 'Nama_Penjahit', 'Barcode_Kategori', 'Nama_Kategori', 'Warna', 'Ukuran', 'Stok_Ready', 'Updated_At'],
+    LOG_TAILOR: ['Log_ID', 'Waktu', 'Jenis_Aktivitas', 'Nama_Penjahit', 'ID_Tailor', 'Detail_Item', 'Qty_Bagus', 'Qty_Reject', 'Upah_Satuan', 'Total_Upah', 'Status_Upah', 'ID_Slip']
   }
 };
 
@@ -69,8 +71,9 @@ function invalidateAppCache_() {
     CacheService.getScriptCache().removeAll([
       'IBS_BOOTSTRAP_V5',
       'IBS_LOCATIONS_V5',
-      'IBS_ACTIVE_WO_V5',
-      'IBS_PENDING_QC_V5',
+      'IBS_MASTER_TAILOR_V6',
+      'IBS_STOK_TAILOR_V6',
+      'IBS_UNPAID_UPAH_V6',
       'IBS_OPNAME_SESSIONS_V5'
     ]);
   } catch (e) {}
@@ -93,8 +96,8 @@ function setup() {
   var sheets = [
     IBS.SHEET_MASTER, IBS.SHEET_ATTRIBUTES, IBS.SHEET_VARIANTS, IBS.SHEET_STOCK,
     IBS.SHEET_LOG, IBS.SHEET_LOCATIONS, IBS.SHEET_OPNAME_SESI,
-    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_WO_JAHIT, IBS.SHEET_WO_JAHIT_ITEM,
-    IBS.SHEET_LAPORAN_JAHIT
+    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_LAPORAN_JAHIT,
+    IBS.SHEET_MASTER_TAILOR, IBS.SHEET_STOK_TAILOR, IBS.SHEET_LOG_TAILOR
   ];
 
   sheets.forEach(function (name) {
@@ -106,6 +109,7 @@ function setup() {
     }
   });
 
+  // Format kolom teks (@) agar kode/barcode tidak berubah menjadi angka
   ss.getSheetByName(IBS.SHEET_MASTER).getRange('A:A').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_ATTRIBUTES).getRange('A:A').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_VARIANTS).getRange('A:B').setNumberFormat('@');
@@ -116,6 +120,23 @@ function setup() {
   ss.getSheetByName(IBS.SHEET_OPNAME_DETAIL).getRange('B:D').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT).getRange('A:D').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT).getRange('N:O').setNumberFormat('@');
+
+  // Format kolom teks & angka pada 3 sheet khusus penjahit
+  var shMasterTailor = ss.getSheetByName(IBS.SHEET_MASTER_TAILOR);
+  shMasterTailor.getRange('A:B').setNumberFormat('@');
+  shMasterTailor.getRange('G:H').setNumberFormat('@');
+  shMasterTailor.getRange('F2:F').setNumberFormat('#,##0');
+
+  var shStokTailor = ss.getSheetByName(IBS.SHEET_STOK_TAILOR);
+  shStokTailor.getRange('A:A').setNumberFormat('@');
+  shStokTailor.getRange('C:C').setNumberFormat('@');
+  shStokTailor.getRange('G2:G').setNumberFormat('#,##0');
+
+  var shLogTailor = ss.getSheetByName(IBS.SHEET_LOG_TAILOR);
+  shLogTailor.getRange('A:A').setNumberFormat('@');
+  shLogTailor.getRange('E:E').setNumberFormat('@');
+  shLogTailor.getRange('L:L').setNumberFormat('@');
+  shLogTailor.getRange('G2:J').setNumberFormat('#,##0');
 
   var shVar = ss.getSheetByName(IBS.SHEET_VARIANTS);
   shVar.getRange('H2:J').setNumberFormat('#,##0');
@@ -131,16 +152,17 @@ function setup() {
   cleanAndApplyCheckboxV2_(ss.getSheetByName(IBS.SHEET_ATTRIBUTES), 8);
   cleanAndApplyCheckboxV2_(shVar, 5);
   cleanAndApplyCheckboxV2_(locSheet, 4);
+  cleanAndApplyCheckboxV2_(shMasterTailor, 9);
 
   invalidateAppCache_();
 
-  var msg = 'Setup V5.2 selesai.';
+  var msg = 'Setup V6.0 (MASTER_TAILOR, STOK_TAILOR, LOG_TAILOR) selesai.';
   if (deletedSheets.length > 0) {
     msg += ' Tab dihapus: ' + deletedSheets.join(', ');
   }
   Logger.log(msg);
   try {
-    ss.toast(msg, 'Ina Basic Store V5.2', 6);
+    ss.toast(msg, 'Ina Basic Store V6.0', 6);
   } catch (e) {}
 
   return { success: true, message: msg, deleted_sheets: deletedSheets };
@@ -192,9 +214,10 @@ function ensureAllOperationalSheets_(ss) {
 
   ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
   ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_DETAIL, IBS.HEADERS.OPNAME_DETAIL);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT, IBS.HEADERS.WO_JAHIT);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT_ITEM, IBS.HEADERS.WO_JAHIT_ITEM);
   ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_STOK_TAILOR, IBS.HEADERS.STOK_TAILOR);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_LOG_TAILOR, IBS.HEADERS.LOG_TAILOR);
 }
 
 function syncVariantMarginFormulas_(shVar) {
@@ -262,8 +285,8 @@ function assertV2SheetsReady_(ss) {
   var required = [
     IBS.SHEET_MASTER, IBS.SHEET_ATTRIBUTES, IBS.SHEET_VARIANTS, IBS.SHEET_STOCK,
     IBS.SHEET_LOG, IBS.SHEET_LOCATIONS, IBS.SHEET_OPNAME_SESI,
-    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_WO_JAHIT, IBS.SHEET_WO_JAHIT_ITEM,
-    IBS.SHEET_LAPORAN_JAHIT
+    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_LAPORAN_JAHIT,
+    IBS.SHEET_MASTER_TAILOR, IBS.SHEET_STOK_TAILOR, IBS.SHEET_LOG_TAILOR
   ];
   var missing = required.some(function (name) { return !ss.getSheetByName(name); });
   if (missing) {
@@ -296,8 +319,8 @@ function getBootstrapBundle_(ss) {
     assertV2SheetsReady_(ss);
     return {
       locations: getActiveLocationsV2_(ss),
-      active_wo: getActiveWoJahit_(ss).wo_list,
-      pending_qc: getPendingQcReports_(ss).reports,
+      master_tailor: getMasterTailorList_(ss, false).items,
+      stok_tailor: getStokTailorList_(ss, false).items,
       opname_sessions: getOpnameSessions_(ss).data.sessions,
       server_time: new Date().toISOString()
     };
@@ -311,23 +334,36 @@ function doGet(e) {
   if (action === 'GET_BOOTSTRAP') {
     return jsonResponseV2_(true, 'Bootstrap data berhasil dimuat.', getBootstrapBundle_(ss));
   }
-  if (action === 'GET_PENDING_QC') {
+  if (action === 'GET_MASTER_TAILOR') {
     assertV2SheetsReady_(ss);
-    return jsonResponseV2_(true, 'Daftar laporan pending.', getPendingQcReports_(ss));
+    var includeInactive = e.parameter && upperV2_(e.parameter.include_inactive) === 'TRUE';
+    return jsonResponseV2_(true, 'Daftar kategori & tarif penjahit.', getMasterTailorList_(ss, includeInactive));
   }
-  if (action === 'GET_ACTIVE_WO') {
+  if (action === 'GET_STOK_TAILOR') {
     assertV2SheetsReady_(ss);
-    return jsonResponseV2_(true, 'Daftar WO aktif.', getActiveWoJahit_(ss));
+    var includeZero = e.parameter && upperV2_(e.parameter.include_zero) === 'TRUE';
+    return jsonResponseV2_(true, 'Daftar stok di gudang penjahit.', getStokTailorList_(ss, includeZero));
   }
-  return jsonResponseV2_(true, 'Ina Basic Store Warehouse API V5.2 aktif.', {
-    version: '5.2',
+  if (action === 'GET_TAILOR_SKU') {
+    assertV2SheetsReady_(ss);
+    var skuParam = e.parameter ? (e.parameter.sku || e.parameter.barcode || e.parameter.barcode_kategori) : '';
+    var skuRes = getTailorSkuAction_(ss, { sku: skuParam });
+    return jsonResponseV2_(skuRes.success, skuRes.message, skuRes.data);
+  }
+  if (action === 'GET_UNPAID_UPAH') {
+    assertV2SheetsReady_(ss);
+    return jsonResponseV2_(true, 'Rekap upah penjahit belum dibayar.', getUnpaidUpah_(ss));
+  }
+  return jsonResponseV2_(true, 'Ina Basic Store Warehouse API V6.0 aktif.', {
+    version: '6.0',
     supported_actions: [
-      'GET_BOOTSTRAP', 'GET_PRODUCT', 'GET_LOCATIONS', 'GET_OPNAME_SESSIONS', 'GET_ACTIVE_WO', 'GET_PENDING_QC',
+      'GET_BOOTSTRAP', 'GET_PRODUCT', 'GET_LOCATIONS', 'GET_OPNAME_SESSIONS',
+      'GET_MASTER_TAILOR', 'GET_STOK_TAILOR', 'GET_TAILOR_SKU', 'GET_UNPAID_UPAH',
       'CREATE_PRODUCT', 'ADD_VARIANTS', 'UPDATE_PRODUCT', 'SET_VARIANT_STATUS',
       'UPDATE_VARIANT_PRICING', 'SET_VARIANT_PRICING', 'SET_VARIANT_PRICING_BULK',
       'SAVE_TRANSACTION', 'DEACTIVATE_PRODUCT',
       'CREATE_OPNAME_SESSION', 'SUBMIT_OPNAME_COUNT', 'APPROVE_OPNAME_SESSION',
-      'CREATE_WO_JAHIT', 'CLOSE_WO_JAHIT', 'SUBMIT_LAPORAN_JAHIT', 'SUBMIT_QC_RECEIPT'
+      'SAVE_MASTER_TAILOR', 'SUBMIT_STOK_TAILOR', 'TRANSFER_TAILOR_TO_WAREHOUSE', 'GENERATE_PAY_SLIP'
     ]
   });
 }
@@ -351,7 +387,7 @@ function doPost(e) {
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // READ-ONLY ACTIONS (Tanpa LockService agar super cepat)
+  // READ-ONLY ACTIONS (Tanpa LockService agar cepat)
   if (action === 'GET_BOOTSTRAP') {
     try {
       return jsonResponseV2_(true, 'Bootstrap data berhasil dimuat.', getBootstrapBundle_(ss));
@@ -389,19 +425,38 @@ function doPost(e) {
     }
   }
 
-  if (action === 'GET_ACTIVE_WO') {
+  if (action === 'GET_MASTER_TAILOR') {
     try {
       assertV2SheetsReady_(ss);
-      return jsonResponseV2_(true, 'Daftar WO aktif.', getActiveWoJahit_(ss));
+      return jsonResponseV2_(true, 'Daftar kategori & tarif penjahit.', getMasterTailorList_(ss, payload.include_inactive === true));
     } catch (err) {
       return jsonResponseV2_(false, 'Kesalahan server: ' + err.message);
     }
   }
 
-  if (action === 'GET_PENDING_QC') {
+  if (action === 'GET_STOK_TAILOR') {
     try {
       assertV2SheetsReady_(ss);
-      return jsonResponseV2_(true, 'Daftar laporan pending.', getPendingQcReports_(ss));
+      return jsonResponseV2_(true, 'Daftar stok di gudang penjahit.', getStokTailorList_(ss, payload.include_zero === true));
+    } catch (err) {
+      return jsonResponseV2_(false, 'Kesalahan server: ' + err.message);
+    }
+  }
+
+  if (action === 'GET_TAILOR_SKU') {
+    try {
+      assertV2SheetsReady_(ss);
+      var skuResPost = getTailorSkuAction_(ss, payload);
+      return jsonResponseV2_(skuResPost.success, skuResPost.message, skuResPost.data);
+    } catch (err) {
+      return jsonResponseV2_(false, 'Kesalahan server: ' + err.message);
+    }
+  }
+
+  if (action === 'GET_UNPAID_UPAH') {
+    try {
+      assertV2SheetsReady_(ss);
+      return jsonResponseV2_(true, 'Rekap upah penjahit belum dibayar.', getUnpaidUpah_(ss));
     } catch (err) {
       return jsonResponseV2_(false, 'Kesalahan server: ' + err.message);
     }
@@ -453,17 +508,17 @@ function doPost(e) {
       case 'APPROVE_OPNAME_SESSION':
         result = approveOpnameSession_(ss, payload);
         break;
-      case 'CREATE_WO_JAHIT':
-        result = createWoJahit_(ss, payload);
+      case 'SAVE_MASTER_TAILOR':
+        result = saveMasterTailor_(ss, payload);
         break;
-      case 'CLOSE_WO_JAHIT':
-        result = closeWoJahit_(ss, payload);
+      case 'SUBMIT_STOK_TAILOR':
+        result = submitStokTailor_(ss, payload);
         break;
-      case 'SUBMIT_LAPORAN_JAHIT':
-        result = submitLaporanJahit_(ss, payload);
+      case 'TRANSFER_TAILOR_TO_WAREHOUSE':
+        result = transferTailorToWarehouse_(ss, payload);
         break;
-      case 'SUBMIT_QC_RECEIPT':
-        result = submitQcReceipt_(ss, payload);
+      case 'GENERATE_PAY_SLIP':
+        result = generatePaySlip_(ss, payload);
         break;
       default:
         result = { success: false, message: 'Aksi tidak dikenal: ' + action };
@@ -975,6 +1030,9 @@ function saveStockTransactionV2_(ss, payload) {
   }
 }
 
+// ==========================================
+// NORMALISASI ATRIBUT, VARIASI & HELPER TRANSAKSI
+// ==========================================
 function normalizeAttributesV2_(input) {
   if (!Array.isArray(input)) throw new Error('Format atribut produk tidak valid.');
   if (input.length > 6) throw new Error('Maksimal 6 atribut per produk pada versi ini.');
@@ -989,439 +1047,840 @@ function normalizeAttributesV2_(input) {
     if (!Array.isArray(a.values) || !a.values.length) throw new Error('Atribut ' + name + ' harus memiliki minimal satu nilai.');
     var valueSeen = {};
     var values = a.values.map(function (v) {
-      var value = textV2_(typeof v === 'string' ? v : v.value);
-      var hex = typeof v === 'string' ? '' : textV2_(v.hex);
-      if (!value) throw new Error('Nilai atribut ' + name + ' tidak boleh kosong.');
-      if (valueSeen[value.toLowerCase()]) throw new Error('Nilai atribut duplikat: ' + value + ' pada ' + name);
-      valueSeen[value.toLowerCase()] = true;
-      if (type === 'color' && hex && !/^#[0-9a-fA-F]{6}$/.test(hex)) throw new Error('Kode warna ' + value + ' harus berformat HEX #RRGGBB.');
-      if (type === 'color' && !hex) throw new Error('Kode HEX wajib diisi untuk nilai warna ' + value + '.');
-      return { value: value, hex: hex };
+      var valText = typeof v === 'string' ? textV2_(v) : textV2_(v && v.value);
+      var hex = typeof v === 'object' && v ? textV2_(v.hex) : '';
+      if (!valText) throw new Error('Nilai pada atribut ' + name + ' tidak boleh kosong.');
+      if (valueSeen[valText.toLowerCase()]) throw new Error('Nilai duplikat pada atribut ' + name + ': ' + valText);
+      valueSeen[valText.toLowerCase()] = true;
+      return { value: valText, hex: hex };
     });
     return { name: name, type: type, values: values };
   });
 }
 
 function normalizeVariantsV2_(input, attributes) {
-  if (!Array.isArray(input)) throw new Error('Format kombinasi variasi tidak valid.');
-  if (input.length > 300) throw new Error('Maksimal 300 kombinasi variasi dalam satu permintaan.');
-  var attrNames = attributes.map(function (a) { return a.name; });
-  var seen = {};
-  return input.map(function (v) {
-    var attrs = v.attributes || {};
-    var normalized = {};
-    attrNames.forEach(function (name) {
-      var value = textV2_(attrs[name]);
-      var definition = attributes.filter(function (a) { return a.name === name; })[0];
-      if (!value || !definition.values.some(function (x) { return x.value === value; })) throw new Error('Nilai kombinasi tidak valid untuk atribut ' + name + '.');
-      normalized[name] = value;
-    });
-    Object.keys(attrs).forEach(function (key) {
-      if (attrNames.indexOf(key) === -1) throw new Error('Atribut tidak dikenal: ' + key);
-    });
-    var key = variantKeyV2_(normalized, attributes);
-    if (seen[key]) throw new Error('Kombinasi variasi duplikat: ' + makeVariantLabelV2_(normalized, attributes));
-    seen[key] = true;
-    return {
-      attributes: normalized,
-      active: booleanV2_(v.active, true),
-      hpp: v.hpp,
-      harga_jual: v.harga_jual
-    };
-  });
-}
-
-function variantKeyV2_(attrs, definitions) {
-  return definitions.map(function (d) { return d.name + '=' + textV2_(attrs[d.name]).toLowerCase(); }).join('|');
-}
-
-function makeVariantLabelV2_(attrs, definitions) {
-  if (!definitions.length) return 'Standar';
-  return definitions.map(function (d) { return d.name + ': ' + textV2_(attrs[d.name]); }).join(' · ');
-}
-
-function appendRowsV2_(sheet, rows, starts) {
-  if (!rows || !rows.length) return 0;
-  var start = sheet.getLastRow() + 1;
-  sheet.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
-  starts.push({ sheet: sheet, start: start, count: rows.length });
-  return start;
-}
-
-function rollbackAppendsV2_(starts) {
-  for (var i = starts.length - 1; i >= 0; i--) {
-    var x = starts[i];
-    try { x.sheet.deleteRows(x.start, x.count); } catch (e) { console.error('Rollback append error: ' + e); }
+  if (!Array.isArray(input)) throw new Error('Format variasi tidak valid.');
+  if (!attributes || !attributes.length) {
+    if (!input.length) return [];
+    return [{
+      attributes: {},
+      active: booleanV2_(input[0].active, true),
+      hpp: input[0].hpp,
+      harga_jual: input[0].harga_jual
+    }];
   }
+
+  var keySeen = {};
+  var result = [];
+  input.forEach(function (v) {
+    var rawAttrs = v && v.attributes && typeof v.attributes === 'object' ? v.attributes : {};
+    var cleanAttrs = {};
+    attributes.forEach(function (def) {
+      var foundKey = Object.keys(rawAttrs).filter(function (k) { return k.toLowerCase() === def.name.toLowerCase(); })[0];
+      var val = foundKey ? textV2_(rawAttrs[foundKey]) : '';
+      var matchedVal = def.values.filter(function (x) { return x.value.toLowerCase() === val.toLowerCase(); })[0];
+      if (!matchedVal) {
+        throw new Error('Nilai atribut "' + def.name + '" tidak valid pada kombinasi variasi.');
+      }
+      cleanAttrs[def.name] = matchedVal.value;
+    });
+    var key = variantKeyV2_(cleanAttrs, attributes);
+    if (!keySeen[key]) {
+      keySeen[key] = true;
+      result.push({
+        attributes: cleanAttrs,
+        active: booleanV2_(v.active, true),
+        hpp: v.hpp,
+        harga_jual: v.harga_jual
+      });
+    }
+  });
+  return result;
 }
 
-function trxExistsV2_(logSheet, trxId) {
-  if (!trxId || logSheet.getLastRow() < 2) return false;
-  var ids = logSheet.getRange(2, 2, logSheet.getLastRow() - 1, 1).getDisplayValues();
-  return ids.some(function (r) { return textV2_(r[0]) === trxId; });
+function makeVariantLabelV2_(attrs, attributes) {
+  if (!attributes || !attributes.length) return 'Standar';
+  var parts = [];
+  attributes.forEach(function (a) {
+    var val = attrs && Object.prototype.hasOwnProperty.call(attrs, a.name) ? textV2_(attrs[a.name]) : '';
+    if (val) parts.push(val);
+  });
+  return parts.length ? parts.join(' · ') : 'Standar';
+}
+
+function variantKeyV2_(attrs, attributes) {
+  if (!attributes || !attributes.length) return '__STANDARD__';
+  return attributes.map(function (a) {
+    var val = attrs && Object.prototype.hasOwnProperty.call(attrs, a.name) ? upperV2_(attrs[a.name]) : '';
+    return upperV2_(a.name) + '=' + val;
+  }).join('|');
 }
 
 function newVariantIdV2_() {
-  return 'VAR-' + Utilities.getUuid().replace(/-/g, '').substring(0, 12).toUpperCase();
+  return 'VAR-' + Utilities.getUuid().replace(/-/g, '').substring(0, 8).toUpperCase();
 }
 
-function parseJsonObjectV2_(value) {
-  if (!value) return {};
+function trxExistsV2_(logSheet, trxId) {
+  if (!logSheet || logSheet.getLastRow() < 2 || !trxId) return false;
+  var vals = logSheet.getRange(2, 2, logSheet.getLastRow() - 1, 1).getDisplayValues();
+  for (var i = 0; i < vals.length; i++) {
+    if (textV2_(vals[i][0]) === textV2_(trxId)) return true;
+  }
+  return false;
+}
+
+function appendRowsV2_(sheet, rows, startsTracker) {
+  if (!rows || !rows.length) return 0;
+  var startRow = sheet.getLastRow() + 1;
+  sheet.getRange(startRow, 1, rows.length, rows[0].length).setValues(rows);
+  if (Array.isArray(startsTracker)) {
+    startsTracker.push({ sheet: sheet, startRow: startRow, numRows: rows.length });
+  }
+  return startRow;
+}
+
+function rollbackAppendsV2_(startsTracker) {
+  if (!Array.isArray(startsTracker)) return;
+  for (var i = startsTracker.length - 1; i >= 0; i--) {
+    var item = startsTracker[i];
+    try {
+      item.sheet.deleteRows(item.startRow, item.numRows);
+    } catch (e) {
+      console.error('Rollback append error: ' + e);
+    }
+  }
+}
+
+function parseJsonObjectV2_(raw) {
+  var str = textV2_(raw);
+  if (!str) return {};
   try {
-    var parsed = JSON.parse(String(value));
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-  } catch (e) { return {}; }
+    var obj = JSON.parse(str);
+    return obj && typeof obj === 'object' ? obj : {};
+  } catch (e) {
+    return {};
+  }
 }
 
 function jsonResponseV2_(success, message, data) {
-  var result = { success: !!success, message: message || '' };
-  if (data !== undefined) result.data = data;
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  var payload = {
+    success: Boolean(success),
+    message: message || '',
+    data: data === undefined ? null : data
+  };
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ==========================================
-// MODUL WORK ORDER JAHIT & LAPORAN QC
+// MODUL GUDANG PENJAHIT (MASTER_TAILOR, STOK_TAILOR, LOG_TAILOR)
 // ==========================================
-function createWoJahit_(ss, payload) {
-  var nomorWo = textV2_(payload.nomor_wo) || ('WO-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 900 + 100));
-  var timLabel = textV2_(payload.tim_label);
-  var lokasiAsal = textV2_(payload.lokasi_asal_bahan);
-  var lokasiTujuan = textV2_(payload.lokasi_tujuan);
-  var tanggalTarget = textV2_(payload.tanggal_target);
-  var catatan = textV2_(payload.catatan);
-  var pelapor = textV2_(payload.nama_pelapor);
-  var items = payload.items || [];
-
-  if (!timLabel || !lokasiAsal || !pelapor) return { success: false, message: 'Tim/Label, lokasi asal, dan nama pelapor wajib diisi.' };
-  if (!isValidLocationV2_(ss, lokasiAsal)) return { success: false, message: 'Lokasi asal tidak valid.' };
-  if (!items.length) return { success: false, message: 'Minimal harus ada 1 target item pada Work Order.' };
-
-  var woId = 'WOJ-' + Utilities.getUuid().split('-')[0].toUpperCase();
-  var shWo = ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT, IBS.HEADERS.WO_JAHIT);
-  var shItem = ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT_ITEM, IBS.HEADERS.WO_JAHIT_ITEM);
-  var now = new Date();
-
-  shWo.appendRow([woId, nomorWo, 'AKTIF', timLabel, lokasiAsal, lokasiTujuan, tanggalTarget, catatan, pelapor, now]);
-
-  var itemRows = [];
-  items.forEach(function (item, idx) {
-    var itemId = woId + '-ITM-' + (idx + 1);
-    var deskripsi = textV2_(item.deskripsi);
-    var qty = Number(item.target_qty) || 0;
-    itemRows.push([itemId, woId, deskripsi, qty, textV2_(item.catatan)]);
-  });
-
-  if (itemRows.length) {
-    shItem.getRange(shItem.getLastRow() + 1, 1, itemRows.length, itemRows[0].length).setValues(itemRows);
-  }
-
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Work Order Jahit berhasil dibuat.', data: { wo_id: woId, nomor_wo: nomorWo } };
-}
-
-function closeWoJahit_(ss, payload) {
-  var woId = textV2_(payload.wo_id);
-  var nomorWo = textV2_(payload.nomor_wo);
-  if (!woId && !nomorWo) return { success: false, message: 'ID atau Nomor WO wajib diisi.' };
-
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  if (!shWo || shWo.getLastRow() < 2) return { success: false, message: 'Data WO tidak ditemukan.' };
-
-  var woRows = readObjectsV2_(shWo);
-  var wo = woRows.filter(function (w) {
-    return (woId && textV2_(w.WO_ID) === woId) || (nomorWo && upperV2_(w.Nomor_WO) === upperV2_(nomorWo));
-  })[0];
-
-  if (!wo) return { success: false, message: 'Work Order tidak ditemukan.' };
-  assertEditableStatus_(wo.Status, 'Work Order ' + textV2_(wo.Nomor_WO));
-
-  shWo.getRange(wo._row, 3).setValue('SELESAI');
-  SpreadsheetApp.flush();
-  return { success: true, message: 'Sesi Work Order ' + textV2_(wo.Nomor_WO) + ' telah ditandai SELESAI dan dikunci.' };
-}
-
-function getActiveWoJahit_(ss) {
-  return getCachedV5_('IBS_ACTIVE_WO_V5', function () {
-    var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-    if (!shWo || shWo.getLastRow() < 2) return { wo_list: [] };
-
-    var shItem = ss.getSheetByName(IBS.SHEET_WO_JAHIT_ITEM);
-    var shLap = ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
-
-    var woRows = readObjectsV2_(shWo);
-    var itemRows = shItem && shItem.getLastRow() >= 2 ? readObjectsV2_(shItem) : [];
-    var lapRows = shLap.getLastRow() >= 2 ? readObjectsV2_(shLap) : [];
-
-    var list = [];
-    woRows.forEach(function (w) {
-      var st = upperV2_(w.Status);
-      // Jangan tampilkan sesi WO yang sudah SELESAI / BATAL / CLOSED
-      if (st === 'SELESAI' || st === 'BATAL' || st === 'DIBATALKAN' || st === 'CLOSED') return;
-
-      var woId = textV2_(w.WO_ID);
-      var noWo = textV2_(w.Nomor_WO);
-      var woItems = itemRows.filter(function (it) { return textV2_(it.WO_ID) === woId; });
-      var targetQty = woItems.reduce(function (sum, it) { return sum + (Number(it.Target_Qty) || 0); }, 0);
-      var approvedQty = lapRows.filter(function (lp) {
-        return upperV2_(lp.Status) === 'APPROVED' &&
-          ((woId && textV2_(lp.WO_ID) === woId) || upperV2_(lp.Nomor_WO) === upperV2_(noWo));
-      }).reduce(function (sum, lp) { return sum + (Number(lp.Qty_Lolos) || 0); }, 0);
-
-      // Jika target sudah tercapai namun kolom Status di sheet belum berubah, otomatis kunci jadi SELESAI
-      if (targetQty > 0 && approvedQty >= targetQty) {
-        try { shWo.getRange(w._row, 3).setValue('SELESAI'); } catch (e) {}
-        return;
-      }
-
-      var pendingQty = lapRows.filter(function (lp) {
-        return upperV2_(lp.Status) === 'PENDING' &&
-          ((woId && textV2_(lp.WO_ID) === woId) || upperV2_(lp.Nomor_WO) === upperV2_(noWo));
-      }).reduce(function (sum, lp) { return sum + (Number(lp.Qty_Bagus) || 0); }, 0);
-
-      var masukQty = approvedQty + pendingQty;
-      var summary = woItems.map(function (it) {
-        return textV2_(it.Model_Warna_Ukuran) + ' (' + (Number(it.Target_Qty) || 0) + ')';
-      }).join(', ');
-
-      list.push({
-        wo_id: woId,
-        nomor_wo: noWo,
-        status: textV2_(w.Status),
-        tim_label: textV2_(w.Tim_Label),
-        lokasi_tujuan: textV2_(w.Lokasi_Tujuan),
-        tanggal_target: textV2_(w.Tanggal_Target),
-        target_qty: targetQty,
-        masuk_qty: masukQty,
-        sisa_qty: Math.max(0, targetQty - masukQty),
-        target_summary: summary,
-        items: woItems.map(function (it) {
-          return {
-            item_id: textV2_(it.Item_ID),
-            deskripsi: textV2_(it.Model_Warna_Ukuran),
-            target_qty: Number(it.Target_Qty) || 0,
-            catatan: textV2_(it.Catatan)
-          };
-        })
-      });
+function getMasterTailorList_(ss, includeInactive) {
+  var allItems = getCachedV5_('IBS_MASTER_TAILOR_V6', function () {
+    var shMaster = ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+    if (shMaster.getLastRow() < 2) return [];
+    return readObjectsV2_(shMaster).map(function (r) {
+      return {
+        id_tailor: textV2_(r.ID_Tailor),
+        barcode_kategori: textV2_(r.Barcode_Kategori),
+        nama_kategori: textV2_(r.Nama_Kategori),
+        warna: textV2_(r.Warna) || '-',
+        ukuran: textV2_(r.Ukuran) || '-',
+        upah_per_pcs: Number(r.Upah_Per_Pcs) || 0,
+        barcode_produk_tujuan: textV2_(r.Barcode_Produk_Tujuan),
+        id_variasi_tujuan: textV2_(r.ID_Variasi_Tujuan),
+        status_aktif: booleanV2_(r.Status_Aktif, true)
+      };
+    }).filter(function (it) {
+      return it.id_tailor !== '' || it.barcode_kategori !== '';
     });
-
-    return { wo_list: list };
   });
+
+  var items = includeInactive
+    ? allItems
+    : allItems.filter(function (it) { return it.status_aktif !== false; });
+  return { items: items };
 }
 
-function submitLaporanJahit_(ss, payload) {
-  var trxId = textV2_(payload.transaction_id);
-  var woIdInput = textV2_(payload.wo_id);
-  var nomorWoInput = textV2_(payload.nomor_wo);
-  var namaPenjahit = textV2_(payload.nama_penjahit);
-  var qtyBagus = Number(payload.qty_bagus) || 0;
-  var qtyCacat = Number(payload.qty_cacat) || 0;
+function getStokTailorList_(ss, includeZero) {
+  var buildAll = function () {
+    var shStok = ensureSheetHeadersV2_(ss, IBS.SHEET_STOK_TAILOR, IBS.HEADERS.STOK_TAILOR);
+    if (shStok.getLastRow() < 2) return [];
 
-  if ((!woIdInput && !nomorWoInput) || !namaPenjahit) {
-    return { success: false, message: 'Nomor WO dan Nama Penjahit wajib diisi.' };
+    var shMaster = ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+    var masterMap = {};
+    var skuDefaultTarif = {};
+    if (shMaster.getLastRow() >= 2) {
+      readObjectsV2_(shMaster).forEach(function (m) {
+        var idT = textV2_(m.ID_Tailor);
+        var bKat = upperV2_(m.Barcode_Kategori);
+        var vId = textV2_(m.ID_Variasi_Tujuan);
+        var upah = Number(m.Upah_Per_Pcs) || 0;
+        masterMap[idT] = {
+          upah_per_pcs: upah,
+          barcode_produk_tujuan: textV2_(m.Barcode_Produk_Tujuan) || textV2_(m.Barcode_Kategori),
+          id_variasi_tujuan: vId
+        };
+        if (bKat && !vId && booleanV2_(m.Status_Aktif, true)) {
+          skuDefaultTarif[bKat] = upah;
+        }
+      });
+    }
+
+    return readObjectsV2_(shStok).map(function (r) {
+      var idTailor = textV2_(r.ID_Tailor);
+      var barcodeKat = textV2_(r.Barcode_Kategori);
+      var stokReady = Number(r.Stok_Ready) || 0;
+      var meta = masterMap[idTailor] || { upah_per_pcs: 0, barcode_produk_tujuan: barcodeKat, id_variasi_tujuan: '' };
+      var resolvedUpah = meta.upah_per_pcs > 0 ? meta.upah_per_pcs : (skuDefaultTarif[upperV2_(barcodeKat)] || 0);
+      return {
+        id_tailor: idTailor,
+        nama_penjahit: textV2_(r.Nama_Penjahit),
+        barcode_kategori: barcodeKat,
+        nama_kategori: textV2_(r.Nama_Kategori),
+        warna: textV2_(r.Warna) || '-',
+        ukuran: textV2_(r.Ukuran) || '-',
+        stok_ready: stokReady,
+        upah_per_pcs: resolvedUpah,
+        estimasi_upah: stokReady * resolvedUpah,
+        barcode_produk_tujuan: meta.barcode_produk_tujuan || barcodeKat,
+        id_variasi_tujuan: meta.id_variasi_tujuan,
+        updated_at: r.Updated_At
+      };
+    });
+  };
+
+  var allItems = getCachedV5_('IBS_STOK_TAILOR_V6', buildAll);
+  var items = includeZero
+    ? allItems
+    : allItems.filter(function (it) { return it.stok_ready > 0; });
+  return { items: items };
+}
+
+function getTailorSkuAction_(ss, payload) {
+  var sku = textV2_(payload.sku || payload.barcode || payload.barcode_kategori);
+  if (!sku) {
+    return { success: false, message: 'Kode SKU jahit wajib diisi.' };
   }
-  if (qtyBagus < 0 || qtyCacat < 0 || (qtyBagus + qtyCacat) <= 0) {
-    return { success: false, message: 'Jumlah jahitan minimal 1 pcs dan tidak boleh negatif.' };
+
+  var shMaster = ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+  var masterRows = shMaster.getLastRow() >= 2 ? readObjectsV2_(shMaster) : [];
+  var matchedSku = masterRows.filter(function (r) {
+    return upperV2_(r.Barcode_Kategori) === upperV2_(sku);
+  });
+
+  if (!matchedSku.length) {
+    return {
+      success: false,
+      message: 'Validasi Gagal: SKU "' + sku + '" tidak ditemukan di Master Tailor.'
+    };
   }
 
-  var shLap = ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
-  var existing = readObjectsV2_(shLap);
-  if (trxId && existing.some(function (r) { return textV2_(r.Transaction_ID) === trxId; })) {
-    return { success: false, message: 'Laporan ini sudah pernah dikirim.' };
+  var activeVariants = matchedSku.filter(function (r) {
+    return booleanV2_(r.Status_Aktif, true);
+  });
+
+  if (!activeVariants.length) {
+    return {
+      success: false,
+      message: 'Validasi Gagal: SKU "' + sku + '" di Master Tailor sedang nonaktif.'
+    };
   }
 
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var woRows = shWo && shWo.getLastRow() >= 2 ? readObjectsV2_(shWo) : [];
-  var wo = woRows.filter(function (w) {
-    if (woIdInput && textV2_(w.WO_ID) === woIdInput) return true;
-    if (nomorWoInput && upperV2_(w.Nomor_WO) === upperV2_(nomorWoInput)) return true;
-    return false;
-  })[0];
+  // Gabungkan saldo Stok_Ready dari STOK_TAILOR untuk setiap variasi pada SKU ini
+  var shStok = ensureSheetHeadersV2_(ss, IBS.SHEET_STOK_TAILOR, IBS.HEADERS.STOK_TAILOR);
+  var stokRows = shStok.getLastRow() >= 2 ? readObjectsV2_(shStok) : [];
+  var stokByTailorId = {};
+  stokRows.forEach(function (st) {
+    var idT = textV2_(st.ID_Tailor);
+    var qty = Number(st.Stok_Ready) || 0;
+    if (!stokByTailorId[idT]) {
+      stokByTailorId[idT] = { total: 0, by_tailor: [] };
+    }
+    stokByTailorId[idT].total += qty;
+    if (qty > 0) {
+      stokByTailorId[idT].by_tailor.push({
+        nama_penjahit: textV2_(st.Nama_Penjahit),
+        stok_ready: qty
+      });
+    }
+  });
 
-  if (wo) {
-    assertEditableStatus_(wo.Status, 'Sesi WO ' + textV2_(wo.Nomor_WO));
-  }
-
-  var finalWoId = wo ? textV2_(wo.WO_ID) : woIdInput;
-  var finalNomorWo = wo ? textV2_(wo.Nomor_WO) : nomorWoInput;
-  var defaultLokasi = wo ? textV2_(wo.Lokasi_Tujuan) : '';
-  var reportId = 'QC-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 9000 + 1000);
-
-  shLap.appendRow([
-    reportId, trxId, finalWoId, finalNomorWo, namaPenjahit,
-    qtyBagus, qtyCacat, 'PENDING', new Date(),
-    0, 0, 0, '', '', '', defaultLokasi, '', ''
-  ]);
-  SpreadsheetApp.flush();
+  var variants = activeVariants.map(function (r) {
+    var idT = textV2_(r.ID_Tailor);
+    var stInfo = stokByTailorId[idT] || { total: 0, by_tailor: [] };
+    return {
+      id_tailor: idT,
+      barcode_kategori: textV2_(r.Barcode_Kategori),
+      nama_kategori: textV2_(r.Nama_Kategori),
+      warna: textV2_(r.Warna) || '-',
+      ukuran: textV2_(r.Ukuran) || '-',
+      upah_per_pcs: Number(r.Upah_Per_Pcs) || 0,
+      stok_ready_total: stInfo.total,
+      stok_per_penjahit: stInfo.by_tailor,
+      status_aktif: true
+    };
+  });
 
   return {
     success: true,
-    message: 'Laporan jahit berhasil dikirim untuk verifikasi QC.',
-    data: { report_id: reportId, nomor_wo: finalNomorWo }
+    message: 'SKU valid di Master Tailor: ' + textV2_(activeVariants[0].Nama_Kategori),
+    data: {
+      barcode_kategori: textV2_(activeVariants[0].Barcode_Kategori),
+      nama_kategori: textV2_(activeVariants[0].Nama_Kategori),
+      variants: variants
+    }
   };
 }
 
-function getPendingQcReports_(ss) {
-  return getCachedV5_('IBS_PENDING_QC_V5', function () {
-    var shLap = ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
-    if (shLap.getLastRow() < 2) return { reports: [] };
+function saveMasterTailor_(ss, payload) {
+  var barcodeKategori = textV2_(payload.barcode_kategori || payload.barcode);
+  var namaKategori = textV2_(payload.nama_kategori || payload.nama);
+  var defaultUpah = Number(payload.upah_per_pcs);
+  var barcodeProdukTujuan = textV2_(payload.barcode_produk_tujuan);
+  var idVariasiTujuan = textV2_(payload.id_variasi_tujuan);
 
-    var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-    var shItem = ss.getSheetByName(IBS.SHEET_WO_JAHIT_ITEM);
-    var woRows = shWo && shWo.getLastRow() >= 2 ? readObjectsV2_(shWo) : [];
-    var itemRows = shItem && shItem.getLastRow() >= 2 ? readObjectsV2_(shItem) : [];
+  if (!barcodeKategori) {
+    return { success: false, message: 'Kode SKU jahit wajib diisi.' };
+  }
+  if (!namaKategori) {
+    return { success: false, message: 'Nama produk jahit wajib diisi.' };
+  }
 
-    var reports = readObjectsV2_(shLap).filter(function (r) {
-      return upperV2_(r.Status) === 'PENDING';
-    }).map(function (r) {
-      var wo = woRows.filter(function (w) {
-        return (textV2_(r.WO_ID) && textV2_(w.WO_ID) === textV2_(r.WO_ID)) ||
-               upperV2_(w.Nomor_WO) === upperV2_(r.Nomor_WO);
-      })[0];
-      var woId = wo ? textV2_(wo.WO_ID) : textV2_(r.WO_ID);
-      var items = itemRows.filter(function (it) { return textV2_(it.WO_ID) === woId; });
-      var summary = items.map(function (it) {
-        return textV2_(it.Model_Warna_Ukuran) + ' (' + (Number(it.Target_Qty) || 0) + ')';
-      }).join(', ');
-
+  // Susun daftar variasi yang akan disimpan (mendukung batch multi-variasi maupun 1 variasi)
+  var itemsToSave = [];
+  if (Array.isArray(payload.variants) && payload.variants.length > 0) {
+    itemsToSave = payload.variants.map(function (v) {
       return {
-        report_id: textV2_(r.Report_ID),
-        wo_id: woId,
-        nomor_wo: textV2_(r.Nomor_WO),
-        tim_label: wo ? textV2_(wo.Tim_Label) : '',
-        lokasi_tujuan: textV2_(r.Lokasi_Tujuan) || (wo ? textV2_(wo.Lokasi_Tujuan) : 'Rak Utama'),
-        nama_penjahit: textV2_(r.Nama_Penjahit),
-        qty_bagus: Number(r.Qty_Bagus) || 0,
-        qty_cacat: Number(r.Qty_Cacat) || 0,
-        waktu_lapor: r.Waktu_Lapor,
-        target_summary: summary
+        id_tailor: textV2_(v.id_tailor),
+        warna: textV2_(v.warna) || '-',
+        ukuran: textV2_(v.ukuran) || '-',
+        upah_per_pcs: v.upah_per_pcs !== undefined ? Number(v.upah_per_pcs) : defaultUpah,
+        status_aktif: booleanV2_(v.status_aktif, booleanV2_(payload.status_aktif, true))
       };
     });
+  } else {
+    itemsToSave = [{
+      id_tailor: textV2_(payload.id_tailor),
+      warna: textV2_(payload.warna) || '-',
+      ukuran: textV2_(payload.ukuran) || '-',
+      upah_per_pcs: defaultUpah,
+      status_aktif: booleanV2_(payload.status_aktif, true)
+    }];
+  }
 
-    return { reports: reports };
+  for (var i = 0; i < itemsToSave.length; i++) {
+    if (isNaN(itemsToSave[i].upah_per_pcs) || itemsToSave[i].upah_per_pcs < 0) {
+      return { success: false, message: 'Tarif upah per pcs harus berupa angka >= 0.' };
+    }
+  }
+
+  var shMaster = ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+  var shStok = ensureSheetHeadersV2_(ss, IBS.SHEET_STOK_TAILOR, IBS.HEADERS.STOK_TAILOR);
+  var rows = shMaster.getLastRow() >= 2 ? readObjectsV2_(shMaster) : [];
+  var stokRows = shStok.getLastRow() >= 2 ? readObjectsV2_(shStok) : [];
+  var savedResults = [];
+
+  itemsToSave.forEach(function (item) {
+    var targetRow = null;
+    if (item.id_tailor) {
+      targetRow = rows.filter(function (r) { return textV2_(r.ID_Tailor) === item.id_tailor; })[0];
+    }
+    if (!targetRow) {
+      targetRow = rows.filter(function (r) {
+        return upperV2_(r.Barcode_Kategori) === upperV2_(barcodeKategori) &&
+          upperV2_(textV2_(r.Warna) || '-') === upperV2_(item.warna) &&
+          upperV2_(textV2_(r.Ukuran) || '-') === upperV2_(item.ukuran);
+      })[0];
+    }
+
+    var finalId = targetRow
+      ? textV2_(targetRow.ID_Tailor)
+      : ('TLR-' + Utilities.getUuid().replace(/-/g, '').substring(0, 8).toUpperCase());
+
+    var keepBarcodeTujuan = barcodeProdukTujuan || (targetRow ? textV2_(targetRow.Barcode_Produk_Tujuan) : '');
+    var keepVariasiTujuan = idVariasiTujuan || (targetRow ? textV2_(targetRow.ID_Variasi_Tujuan) : '');
+
+    if (targetRow) {
+      shMaster.getRange(targetRow._row, 2, 1, 8).setValues([[
+        barcodeKategori, namaKategori, item.warna, item.ukuran, item.upah_per_pcs, keepBarcodeTujuan, keepVariasiTujuan, item.status_aktif
+      ]]);
+      shMaster.getRange(targetRow._row, 6).setNumberFormat('#,##0');
+      applyRowCheckboxV2_(shMaster, targetRow._row, 1, 9);
+    } else {
+      var newRow = shMaster.getLastRow() + 1;
+      shMaster.getRange(newRow, 1, 1, 9).setValues([[
+        finalId, barcodeKategori, namaKategori, item.warna, item.ukuran, item.upah_per_pcs, keepBarcodeTujuan, keepVariasiTujuan, item.status_aktif
+      ]]);
+      shMaster.getRange(newRow, 1, 1, 2).setNumberFormat('@');
+      shMaster.getRange(newRow, 6).setNumberFormat('#,##0');
+      shMaster.getRange(newRow, 7, 1, 2).setNumberFormat('@');
+      applyRowCheckboxV2_(shMaster, newRow, 1, 9);
+      rows.push({
+        _row: newRow,
+        ID_Tailor: finalId,
+        Barcode_Kategori: barcodeKategori,
+        Nama_Kategori: namaKategori,
+        Warna: item.warna,
+        Ukuran: item.ukuran,
+        Upah_Per_Pcs: item.upah_per_pcs,
+        Barcode_Produk_Tujuan: keepBarcodeTujuan,
+        ID_Variasi_Tujuan: keepVariasiTujuan,
+        Status_Aktif: item.status_aktif
+      });
+    }
+
+    // Sinkronkan nama & variasi ke STOK_TAILOR jika sudah ada saldo berjalan
+    stokRows.forEach(function (st) {
+      if (textV2_(st.ID_Tailor) === finalId) {
+        shStok.getRange(st._row, 3, 1, 4).setValues([[barcodeKategori, namaKategori, item.warna, item.ukuran]]);
+      }
+    });
+
+    savedResults.push({
+      id_tailor: finalId,
+      barcode_kategori: barcodeKategori,
+      nama_kategori: namaKategori,
+      warna: item.warna,
+      ukuran: item.ukuran,
+      upah_per_pcs: item.upah_per_pcs,
+      status_aktif: item.status_aktif
+    });
   });
+
+  SpreadsheetApp.flush();
+  var summaryMsg = savedResults.length > 1
+    ? 'Berhasil menyimpan ' + savedResults.length + ' variasi untuk ' + namaKategori + ' (' + barcodeKategori + ').'
+    : 'Variasi jahit disimpan: ' + namaKategori + ' (' + savedResults[0].warna + ' · ' + savedResults[0].ukuran + ').';
+
+  return {
+    success: true,
+    message: summaryMsg,
+    data: savedResults.length === 1 ? savedResults[0] : { items: savedResults, count: savedResults.length }
+  };
 }
 
-function submitQcReceipt_(ss, payload) {
+function submitStokTailor_(ss, payload) {
   var trxId = textV2_(payload.transaction_id);
-  var reportId = textV2_(payload.report_id);
-  var namaPenerima = textV2_(payload.nama_penerima || payload.nama_qc);
+  var idTailorInput = textV2_(payload.id_tailor);
+  var barcodeSku = textV2_(payload.barcode_kategori || payload.barcode);
+  var warnaInput = textV2_(payload.warna);
+  var ukuranInput = textV2_(payload.ukuran);
+  var namaPenjahit = textV2_(payload.nama_penjahit);
+  var qty = Number(payload.qty !== undefined ? payload.qty : payload.qty_bagus);
+
+  if (!namaPenjahit) {
+    return { success: false, message: 'Nama penjahit wajib diisi.' };
+  }
+  if (!barcodeSku && !idTailorInput) {
+    return { success: false, message: 'SKU produk jahit wajib dipindai atau dipilih.' };
+  }
+  if (!isFinite(qty) || qty < 1 || Math.floor(qty) !== qty) {
+    return { success: false, message: 'Jumlah hasil jahitan minimal 1 pcs (bilangan bulat).' };
+  }
+
+  var shLogTailor = ensureSheetHeadersV2_(ss, IBS.SHEET_LOG_TAILOR, IBS.HEADERS.LOG_TAILOR);
+  if (trxId && shLogTailor.getLastRow() >= 2) {
+    var dup = readObjectsV2_(shLogTailor).some(function (r) { return textV2_(r.Log_ID) === trxId; });
+    if (dup) {
+      return { success: false, message: 'Input hasil jahitan ini sudah pernah tercatat.' };
+    }
+  }
+
+  // Validasi SKU & variasi wajib terdaftar & aktif di MASTER_TAILOR (Bukan MASTER_PRODUK)
+  var shMasterTailor = ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+  var tailorRows = shMasterTailor.getLastRow() >= 2 ? readObjectsV2_(shMasterTailor) : [];
+
+  var skuMatches = barcodeSku
+    ? tailorRows.filter(function (r) { return upperV2_(r.Barcode_Kategori) === upperV2_(barcodeSku); })
+    : tailorRows.filter(function (r) { return textV2_(r.ID_Tailor) === idTailorInput; });
+
+  if (!skuMatches.length) {
+    return {
+      success: false,
+      message: 'Validasi Gagal: SKU "' + (barcodeSku || idTailorInput) + '" tidak ditemukan di Master Tailor.'
+    };
+  }
+
+  var activeMatches = skuMatches.filter(function (r) {
+    return booleanV2_(r.Status_Aktif, true);
+  });
+
+  if (!activeMatches.length) {
+    return {
+      success: false,
+      message: 'Validasi Gagal: SKU "' + (barcodeSku || idTailorInput) + '" di Master Tailor sedang nonaktif.'
+    };
+  }
+
+  var matchedRecord = null;
+  if (idTailorInput) {
+    matchedRecord = activeMatches.filter(function (r) { return textV2_(r.ID_Tailor) === idTailorInput; })[0];
+  }
+  if (!matchedRecord && (warnaInput || ukuranInput)) {
+    matchedRecord = activeMatches.filter(function (r) {
+      return upperV2_(textV2_(r.Warna) || '-') === upperV2_(warnaInput || '-') &&
+        upperV2_(textV2_(r.Ukuran) || '-') === upperV2_(ukuranInput || '-');
+    })[0];
+  }
+  if (!matchedRecord && activeMatches.length === 1) {
+    matchedRecord = activeMatches[0];
+  }
+
+  if (!matchedRecord) {
+    return {
+      success: false,
+      message: 'Validasi Gagal: Variasi (' + (warnaInput || '-') + ' / ' + (ukuranInput || '-') + ') tidak terdaftar di Master Tailor untuk SKU "' + barcodeSku + '".'
+    };
+  }
+
+  var resolvedId = textV2_(matchedRecord.ID_Tailor);
+  var resolvedBarcode = textV2_(matchedRecord.Barcode_Kategori);
+  var namaKategori = textV2_(matchedRecord.Nama_Kategori) || resolvedBarcode;
+  var warnaLabel = textV2_(matchedRecord.Warna) || '-';
+  var ukuranLabel = textV2_(matchedRecord.Ukuran) || '-';
+  var upahSatuan = Number(matchedRecord.Upah_Per_Pcs) || 0;
+
+  var now = new Date();
+  var shStok = ensureSheetHeadersV2_(ss, IBS.SHEET_STOK_TAILOR, IBS.HEADERS.STOK_TAILOR);
+  var stokRows = shStok.getLastRow() >= 2 ? readObjectsV2_(shStok) : [];
+  var existingStok = stokRows.filter(function (r) {
+    return textV2_(r.ID_Tailor) === resolvedId && upperV2_(r.Nama_Penjahit) === upperV2_(namaPenjahit);
+  })[0];
+
+  var newStokReady = qty;
+  if (existingStok) {
+    newStokReady = (Number(existingStok.Stok_Ready) || 0) + qty;
+    shStok.getRange(existingStok._row, 2).setValue(namaPenjahit);
+    shStok.getRange(existingStok._row, 7, 1, 2).setValues([[newStokReady, now]]);
+    shStok.getRange(existingStok._row, 7).setNumberFormat('#,##0');
+  } else {
+    var newRow = shStok.getLastRow() + 1;
+    shStok.getRange(newRow, 1, 1, 8).setValues([[
+      resolvedId, namaPenjahit, resolvedBarcode, namaKategori, warnaLabel, ukuranLabel, qty, now
+    ]]);
+    shStok.getRange(newRow, 1).setNumberFormat('@');
+    shStok.getRange(newRow, 3).setNumberFormat('@');
+    shStok.getRange(newRow, 7).setNumberFormat('#,##0');
+  }
+
+  var logId = trxId || ('JHT-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 9000 + 1000));
+  var detailItem = namaKategori + ' (' + resolvedBarcode + ') · ' + warnaLabel + ' · ' + ukuranLabel;
+
+  shLogTailor.appendRow([
+    logId, now, 'INPUT_JAHIT', namaPenjahit, resolvedId, detailItem,
+    qty, 0, upahSatuan, 0, 'PENDING_TRANSFER', ''
+  ]);
+  shLogTailor.getRange(shLogTailor.getLastRow(), 7, 1, 4).setNumberFormat('#,##0');
+
+  SpreadsheetApp.flush();
+  return {
+    success: true,
+    message: 'Berhasil menambah +' + qty + ' pcs ke stok penjahit (' + detailItem + ').',
+    data: {
+      log_id: logId,
+      id_tailor: resolvedId,
+      nama_penjahit: namaPenjahit,
+      detail_item: detailItem,
+      stok_ready: newStokReady
+    }
+  };
+}
+
+function transferTailorToWarehouse_(ss, payload) {
+  var trxId = textV2_(payload.transaction_id);
+  var idTailor = textV2_(payload.id_tailor);
+  var namaPenjahit = textV2_(payload.nama_penjahit);
   var qtyLolos = Number(payload.qty_lolos) || 0;
   var qtyGagal = Number(payload.qty_gagal) || 0;
-  var qtyTerima = Number(payload.qty_terima) || (qtyLolos + qtyGagal);
+  var totalKirim = qtyLolos + qtyGagal;
   var alasanGagal = textV2_(payload.alasan_gagal);
-  var barcodeWip = textV2_(payload.barcode_wip || payload.barcode);
-  var variantId = textV2_(payload.id_variasi_wip || payload.variant_id);
-  var lokasiTujuan = textV2_(payload.lokasi_tujuan);
+  var namaPenerima = textV2_(payload.nama_penerima || payload.nama_qc) || 'Admin';
+  var lokasiTujuan = textV2_(payload.lokasi_tujuan) || 'Rak Utama';
 
-  if (!reportId || !namaPenerima || !barcodeWip || !variantId) {
-    return { success: false, message: 'Data laporan, petugas QC, dan variasi produk tujuan wajib diisi.' };
+  if (!idTailor || !namaPenjahit) {
+    return { success: false, message: 'ID kategori penjahit dan nama penjahit wajib diisi.' };
   }
-  if (qtyTerima <= 0 || qtyLolos < 0 || qtyGagal < 0 || (qtyLolos + qtyGagal) > qtyTerima) {
-    return { success: false, message: 'Kuantitas pemeriksaan QC tidak valid (Lolos + Gagal melebihi jumlah terima).' };
+  if (qtyLolos < 0 || qtyGagal < 0 || totalKirim <= 0) {
+    return { success: false, message: 'Jumlah barang dipindahkan minimal 1 pcs dan tidak boleh negatif.' };
+  }
+  if (!isValidLocationV2_(ss, lokasiTujuan)) {
+    return { success: false, message: 'Lokasi tujuan gudang tidak valid atau nonaktif.' };
   }
 
   var shLog = ss.getSheetByName(IBS.SHEET_LOG);
   if (trxId && trxExistsV2_(shLog, trxId)) {
-    return { success: false, message: 'Transaksi QC ini sudah pernah diproses.' };
+    return { success: false, message: 'Transaksi pemindahan ini sudah pernah diproses.' };
   }
 
-  var shLap = ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
-  var lapRows = readObjectsV2_(shLap);
-  var rep = lapRows.filter(function (r) { return textV2_(r.Report_ID) === reportId; })[0];
-  if (!rep) return { success: false, message: 'Laporan jahit tidak ditemukan.' };
-
-  // Kunci mutlak: Laporan yang sudah APPROVED/REJECTED tidak bisa diubah ulang
-  assertEditableStatus_(rep.Status, 'Laporan QC ' + reportId);
-
-  if (!lokasiTujuan) {
-    lokasiTujuan = textV2_(rep.Lokasi_Tujuan) || 'Rak Utama';
-  }
-  if (!isValidLocationV2_(ss, lokasiTujuan)) {
-    return { success: false, message: 'Lokasi rak tujuan tidak valid atau nonaktif.' };
+  var shLogTailor = ensureSheetHeadersV2_(ss, IBS.SHEET_LOG_TAILOR, IBS.HEADERS.LOG_TAILOR);
+  if (trxId && shLogTailor.getLastRow() >= 2) {
+    var dupTailorLog = readObjectsV2_(shLogTailor).some(function (r) { return textV2_(r.Log_ID) === trxId; });
+    if (dupTailorLog) {
+      return { success: false, message: 'Transaksi pemindahan ini sudah tercatat di LOG_TAILOR.' };
+    }
   }
 
-  var product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcodeWip);
-  if (!product) return { success: false, message: 'Barcode produk tujuan tidak ditemukan.' };
-  if (!product.active) return { success: false, message: 'Produk tujuan sedang nonaktif.' };
+  var shStokTailor = ensureSheetHeadersV2_(ss, IBS.SHEET_STOK_TAILOR, IBS.HEADERS.STOK_TAILOR);
+  var stokRows = shStokTailor.getLastRow() >= 2 ? readObjectsV2_(shStokTailor) : [];
+  var stokRec = stokRows.filter(function (r) {
+    return textV2_(r.ID_Tailor) === idTailor && upperV2_(r.Nama_Penjahit) === upperV2_(namaPenjahit);
+  })[0];
 
-  var variant = findVariantRowV2_(ss.getSheetByName(IBS.SHEET_VARIANTS), variantId);
-  if (!variant || upperV2_(variant.barcode) !== upperV2_(barcodeWip)) {
-    return { success: false, message: 'Variasi tidak cocok dengan barcode produk tujuan.' };
+  if (!stokRec) {
+    return { success: false, message: 'Saldo stok penjahit tidak ditemukan.' };
   }
-  if (!variant.active) return { success: false, message: 'Variasi produk tujuan sedang nonaktif.' };
+  var currentTailorQty = Number(stokRec.Stok_Ready) || 0;
+  if (currentTailorQty < totalKirim) {
+    return { success: false, message: 'Stok di penjahit tidak cukup. Tersedia: ' + currentTailorQty + ' pcs.' };
+  }
+
+  var shMasterTailor = ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER_TAILOR, IBS.HEADERS.MASTER_TAILOR);
+  var allMasterTailor = shMasterTailor.getLastRow() >= 2 ? readObjectsV2_(shMasterTailor) : [];
+  var masterRec = allMasterTailor.filter(function (r) {
+    return textV2_(r.ID_Tailor) === idTailor;
+  })[0];
+
+  var upahSatuan = masterRec ? (Number(masterRec.Upah_Per_Pcs) || 0) : 0;
+  if (upahSatuan === 0) {
+    var skuFallback = allMasterTailor.filter(function (r) {
+      return upperV2_(r.Barcode_Kategori) === upperV2_(stokRec.Barcode_Kategori) &&
+        textV2_(r.ID_Variasi_Tujuan) === '' &&
+        booleanV2_(r.Status_Aktif, true);
+    })[0];
+    if (skuFallback) {
+      upahSatuan = Number(skuFallback.Upah_Per_Pcs) || 0;
+    }
+  }
+
+  var barcodeTujuan = textV2_(payload.barcode_produk_tujuan || payload.barcode_wip || payload.barcode) ||
+    (masterRec ? textV2_(masterRec.Barcode_Produk_Tujuan) : '') ||
+    textV2_(stokRec.Barcode_Kategori);
+  var variantId = textV2_(payload.id_variasi_tujuan || payload.id_variasi_wip || payload.variant_id) ||
+    (masterRec ? textV2_(masterRec.ID_Variasi_Tujuan) : '');
+
+  var product = null;
+  var variant = null;
+  if (qtyLolos > 0) {
+    if (!barcodeTujuan || !variantId) {
+      return { success: false, message: 'Produk dan variasi tujuan di gudang utama wajib dipilih untuk barang siap jual.' };
+    }
+    product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcodeTujuan);
+    if (!product) return { success: false, message: 'Barcode produk tujuan tidak ditemukan di MASTER_PRODUK.' };
+    if (!product.active) return { success: false, message: 'Produk tujuan sedang nonaktif.' };
+
+    variant = findVariantRowV2_(ss.getSheetByName(IBS.SHEET_VARIANTS), variantId);
+    if (!variant || upperV2_(variant.barcode) !== upperV2_(barcodeTujuan)) {
+      return { success: false, message: 'Variasi tidak cocok dengan barcode produk tujuan.' };
+    }
+    if (!variant.active) return { success: false, message: 'Variasi produk tujuan sedang nonaktif.' };
+  }
 
   var now = new Date();
   var stockSheet = ss.getSheetByName(IBS.SHEET_STOCK);
   var changes = [];
+  var oldTailorQty = currentTailorQty;
+  var oldTailorUpdated = shStokTailor.getRange(stokRec._row, 8).getValue();
 
   try {
+    // 1. Kurangi Stok_Ready di STOK_TAILOR sebesar total dikirim (lolos + reject)
+    var sisaStokTailor = currentTailorQty - totalKirim;
+    shStokTailor.getRange(stokRec._row, 7, 1, 2).setValues([[sisaStokTailor, now]]);
+    shStokTailor.getRange(stokRec._row, 7).setNumberFormat('#,##0');
+
+    // 2. Tambah Stok Siap Jual ke STOK_VARIASI (Rak Utama) & OPERATION_LOG sebesar qtyLolos
     if (qtyLolos > 0) {
       var existingStock = findStockRowV2_(stockSheet, variantId, lokasiTujuan);
-      var currentQty = existingStock ? existingStock.qty : 0;
-      changes.push(writeStockQuantityV2_(stockSheet, variantId, barcodeWip, lokasiTujuan, currentQty + qtyLolos, now));
+      var currentMainQty = existingStock ? existingStock.qty : 0;
+      changes.push(writeStockQuantityV2_(stockSheet, variantId, barcodeTujuan, lokasiTujuan, currentMainQty + qtyLolos, now));
 
-      var display = product.name + (variant.label ? ' · ' + variant.label : '');
-      var nomorWoLabel = textV2_(rep.Nomor_WO);
-      var asalLabel = nomorWoLabel ? ('Produksi Jahit (' + nomorWoLabel + ')') : 'Produksi Jahit';
+      var displayProd = product.name + (variant.label ? ' · ' + variant.label : '');
+      var logMainId = trxId || ('TRF-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 9000 + 1000));
       shLog.appendRow([
-        now, trxId || ('QC-' + reportId), 'Masuk', barcodeWip, asalLabel, lokasiTujuan, qtyLolos, 'SUCCESS', variantId,
-        product.name, JSON.stringify(variant.attributes || {}), variant.label, display,
-        namaPenerima + ' (QC: ' + textV2_(rep.Nama_Penjahit) + ')',
+        now, logMainId, 'Masuk', barcodeTujuan, 'Penjahit: ' + namaPenjahit, lokasiTujuan, qtyLolos, 'SUCCESS', variantId,
+        product.name, JSON.stringify(variant.attributes || {}), variant.label, displayProd,
+        namaPenerima + ' (Dari Penjahit: ' + namaPenjahit + ')',
         variant.hpp || 0, 0, 0, 0
       ]);
       shLog.getRange(shLog.getLastRow(), 15, 1, 4).setNumberFormat('#,##0');
-    }
 
-    shLap.getRange(rep._row, 8).setValue('APPROVED');
-    shLap.getRange(rep._row, 10, 1, 9).setValues([[
-      qtyTerima, qtyLolos, qtyGagal, alasanGagal, barcodeWip, variantId, lokasiTujuan, namaPenerima, now
-    ]]);
-
-    var nomorWo = textV2_(rep.Nomor_WO);
-    var woId = textV2_(rep.WO_ID);
-    var woClosed = false;
-    if (nomorWo || woId) {
-      var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-      var shItem = ss.getSheetByName(IBS.SHEET_WO_JAHIT_ITEM);
-      var woRows = shWo && shWo.getLastRow() >= 2 ? readObjectsV2_(shWo) : [];
-      var wo = woRows.filter(function (w) {
-        return (woId && textV2_(w.WO_ID) === woId) || upperV2_(w.Nomor_WO) === upperV2_(nomorWo);
-      })[0];
-
-      if (wo) {
-        var resolvedWoId = textV2_(wo.WO_ID);
-        var resolvedNoWo = textV2_(wo.Nomor_WO);
-        var targetTotal = (shItem && shItem.getLastRow() >= 2 ? readObjectsV2_(shItem) : [])
-          .filter(function (it) { return textV2_(it.WO_ID) === resolvedWoId; })
-          .reduce(function (sum, it) { return sum + (Number(it.Target_Qty) || 0); }, 0);
-
-        var approvedTotal = readObjectsV2_(shLap)
-          .filter(function (r) {
-            return upperV2_(r.Status) === 'APPROVED' &&
-              ((resolvedWoId && textV2_(r.WO_ID) === resolvedWoId) || upperV2_(r.Nomor_WO) === upperV2_(resolvedNoWo));
-          })
-          .reduce(function (sum, r) { return sum + (Number(r.Qty_Lolos) || 0); }, 0);
-
-        if (targetTotal > 0 && approvedTotal >= targetTotal) {
-          shWo.getRange(wo._row, 3).setValue('SELESAI');
-          woClosed = true;
-        } else if (upperV2_(wo.Status) === 'DRAFT') {
-          shWo.getRange(wo._row, 3).setValue('PROSES');
-        }
+      // Simpan default mapping produk tujuan ke MASTER_TAILOR jika sebelumnya kosong
+      if (masterRec && (!textV2_(masterRec.Barcode_Produk_Tujuan) || !textV2_(masterRec.ID_Variasi_Tujuan))) {
+        shMasterTailor.getRange(masterRec._row, 7, 1, 2).setValues([[barcodeTujuan, variantId]]);
+        shMasterTailor.getRange(masterRec._row, 7, 1, 2).setNumberFormat('@');
       }
     }
+
+    // 3. Hitung otomatis upah (Qty_Bagus * Upah_Per_Pcs) dan simpan ke LOG_TAILOR berstatus UNPAID
+    var totalUpah = qtyLolos * upahSatuan;
+    var statusUpah = totalUpah > 0 ? 'UNPAID' : 'NO_PAY';
+    var detailItem = textV2_(stokRec.Nama_Kategori) + ' · ' + (textV2_(stokRec.Warna) || '-') + ' · ' + (textV2_(stokRec.Ukuran) || '-');
+    if (alasanGagal) detailItem += ' [Reject: ' + alasanGagal + ']';
+    var logTailorId = trxId || ('TRF-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 9000 + 1000));
+
+    shLogTailor.appendRow([
+      logTailorId, now, 'TRANSFER_GUDANG', namaPenjahit, idTailor, detailItem,
+      qtyLolos, qtyGagal, upahSatuan, totalUpah, statusUpah, ''
+    ]);
+    shLogTailor.getRange(shLogTailor.getLastRow(), 7, 1, 4).setNumberFormat('#,##0');
 
     SpreadsheetApp.flush();
     return {
       success: true,
-      message: 'QC tersimpan (+' + qtyLolos + ' stok)' + (woClosed ? ' · Target WO tercapai & sesi langsung ditutup (SELESAI)!' : '.'),
-      data: { wo_closed: woClosed }
+      message: 'Berhasil memindahkan +' + qtyLolos + ' pcs ke ' + lokasiTujuan + ' (Upah tercatat: Rp ' + totalUpah.toLocaleString('id-ID') + ').',
+      data: {
+        log_id: logTailorId,
+        qty_lolos: qtyLolos,
+        qty_gagal: qtyGagal,
+        sisa_stok_tailor: sisaStokTailor,
+        upah_satuan: upahSatuan,
+        total_upah: totalUpah,
+        status_upah: statusUpah
+      }
     };
   } catch (err) {
     rollbackStockChangesV2_(stockSheet, changes);
+    try {
+      shStokTailor.getRange(stokRec._row, 7, 1, 2).setValues([[oldTailorQty, oldTailorUpdated]]);
+    } catch (rbErr) {}
     throw err;
   }
+}
+
+function getUnpaidUpah_(ss) {
+  return getCachedV5_('IBS_UNPAID_UPAH_V6', function () {
+    var shLog = ensureSheetHeadersV2_(ss, IBS.SHEET_LOG_TAILOR, IBS.HEADERS.LOG_TAILOR);
+    if (shLog.getLastRow() < 2) {
+      return { tailors: [], grand_total_upah: 0, total_penjahit: 0 };
+    }
+
+    var grouped = {};
+    readObjectsV2_(shLog).forEach(function (r) {
+      if (upperV2_(r.Status_Upah) !== 'UNPAID') return;
+      var totalUpah = Number(r.Total_Upah) || 0;
+      if (totalUpah <= 0) return;
+
+      var nama = textV2_(r.Nama_Penjahit) || 'Tanpa Nama';
+      var key = upperV2_(nama);
+      if (!grouped[key]) {
+        grouped[key] = {
+          nama_penjahit: nama,
+          total_qty_bagus: 0,
+          total_qty_reject: 0,
+          total_upah: 0,
+          jumlah_transaksi: 0,
+          items: []
+        };
+      }
+      var qtyBagus = Number(r.Qty_Bagus) || 0;
+      var qtyReject = Number(r.Qty_Reject) || 0;
+      grouped[key].total_qty_bagus += qtyBagus;
+      grouped[key].total_qty_reject += qtyReject;
+      grouped[key].total_upah += totalUpah;
+      grouped[key].jumlah_transaksi += 1;
+      grouped[key].items.push({
+        log_id: textV2_(r.Log_ID),
+        waktu: r.Waktu,
+        id_tailor: textV2_(r.ID_Tailor),
+        detail_item: textV2_(r.Detail_Item),
+        qty_bagus: qtyBagus,
+        qty_reject: qtyReject,
+        upah_satuan: Number(r.Upah_Satuan) || 0,
+        total_upah: totalUpah
+      });
+    });
+
+    var tailors = Object.keys(grouped).map(function (k) { return grouped[k]; });
+    tailors.sort(function (a, b) { return b.total_upah - a.total_upah; });
+    var grandTotal = tailors.reduce(function (sum, t) { return sum + t.total_upah; }, 0);
+
+    return {
+      tailors: tailors,
+      grand_total_upah: grandTotal,
+      total_penjahit: tailors.length
+    };
+  });
+}
+
+function generatePaySlip_(ss, payload) {
+  var namaPenjahit = textV2_(payload.nama_penjahit);
+  var requestedIds = Array.isArray(payload.log_ids) ? payload.log_ids.map(function (id) { return textV2_(id); }) : [];
+  var namaAdmin = textV2_(payload.nama_admin || payload.nama_pelapor) || 'Admin';
+
+  if (!namaPenjahit) {
+    return { success: false, message: 'Nama penjahit wajib dipilih untuk pencetakan slip upah.' };
+  }
+
+  var shLog = ensureSheetHeadersV2_(ss, IBS.SHEET_LOG_TAILOR, IBS.HEADERS.LOG_TAILOR);
+  if (shLog.getLastRow() < 2) {
+    return { success: false, message: 'Belum ada riwayat upah pada LOG_TAILOR.' };
+  }
+
+  var rows = readObjectsV2_(shLog);
+  var matched = rows.filter(function (r) {
+    if (upperV2_(r.Nama_Penjahit) !== upperV2_(namaPenjahit)) return false;
+    if (upperV2_(r.Status_Upah) !== 'UNPAID') return false;
+    if ((Number(r.Total_Upah) || 0) <= 0) return false;
+    if (requestedIds.length > 0 && requestedIds.indexOf(textV2_(r.Log_ID)) === -1) return false;
+    return true;
+  });
+
+  if (!matched.length) {
+    return { success: false, message: 'Tidak ada tagihan upah UNPAID yang dapat dibayarkan untuk ' + namaPenjahit + '.' };
+  }
+
+  var now = new Date();
+  var slipId = 'SLIP-' + Utilities.formatDate(now, 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 9000 + 1000);
+  var totalQtyBagus = 0;
+  var totalQtyReject = 0;
+  var totalUpah = 0;
+  var rincian = [];
+
+  matched.forEach(function (r) {
+    shLog.getRange(r._row, 11, 1, 2).setValues([['PAID', slipId]]);
+    shLog.getRange(r._row, 12).setNumberFormat('@');
+    var qBagus = Number(r.Qty_Bagus) || 0;
+    var qReject = Number(r.Qty_Reject) || 0;
+    var uTotal = Number(r.Total_Upah) || 0;
+    totalQtyBagus += qBagus;
+    totalQtyReject += qReject;
+    totalUpah += uTotal;
+    rincian.push({
+      log_id: textV2_(r.Log_ID),
+      waktu: r.Waktu,
+      detail_item: textV2_(r.Detail_Item),
+      qty_bagus: qBagus,
+      qty_reject: qReject,
+      upah_satuan: Number(r.Upah_Satuan) || 0,
+      total_upah: uTotal
+    });
+  });
+
+  // Catat ringkasan audit pembayaran slip (status PAID agar tidak terhitung ulang sebagai UNPAID)
+  shLog.appendRow([
+    slipId, now, 'PEMBAYARAN_SLIP', matched[0].Nama_Penjahit, '',
+    'Pelunasan ' + matched.length + ' transaksi oleh ' + namaAdmin,
+    totalQtyBagus, totalQtyReject, 0, totalUpah, 'PAID', slipId
+  ]);
+  shLog.getRange(shLog.getLastRow(), 7, 1, 4).setNumberFormat('#,##0');
+
+  SpreadsheetApp.flush();
+  return {
+    success: true,
+    message: 'Slip Upah ' + slipId + ' berhasil diterbitkan & ditandai LUNAS (PAID).',
+    data: {
+      slip_id: slipId,
+      nama_penjahit: textV2_(matched[0].Nama_Penjahit),
+      tanggal_bayar: now.toISOString(),
+      dibayar_oleh: namaAdmin,
+      jumlah_item: matched.length,
+      total_qty_bagus: totalQtyBagus,
+      total_qty_reject: totalQtyReject,
+      total_upah: totalUpah,
+      rincian: rincian
+    }
+  };
 }
 
 // ==========================================
@@ -1650,4 +2109,140 @@ function booleanV2_(val, fallback) {
   if (v === 'TRUE' || v === '1' || v === 'YA' || v === 'AKTIF') return true;
   if (v === 'FALSE' || v === '0' || v === 'TIDAK' || v === 'NONAKTIF') return false;
   return fallback;
+}
+
+/**
+ * PENGUJIAN OTOMATIS END-TO-END (Jalankan dari Editor Apps Script -> Run -> testSimulasiV6)
+ * Menguji seluruh siklus V6.0 dengan data simulasi sementara lalu membersihkan kembali sheet.
+ */
+function testSimulasiV6() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ensureAllOperationalSheets_(ss);
+
+  var testSku = 'TEST-SKU-V6';
+  var testProdBarcode = 'TEST-PROD-V6';
+  var testTailorName = 'Penjahit Uji V6';
+  var steps = [];
+
+  var cleanupTestRows = function () {
+    var targets = [
+      { sheet: IBS.SHEET_MASTER_TAILOR, cols: [2] },
+      { sheet: IBS.SHEET_STOK_TAILOR, cols: [2, 3] },
+      { sheet: IBS.SHEET_LOG_TAILOR, cols: [4] },
+      { sheet: IBS.SHEET_MASTER, cols: [1] },
+      { sheet: IBS.SHEET_ATTRIBUTES, cols: [1] },
+      { sheet: IBS.SHEET_VARIANTS, cols: [2] },
+      { sheet: IBS.SHEET_STOCK, cols: [2] },
+      { sheet: IBS.SHEET_LOG, cols: [4] }
+    ];
+    targets.forEach(function (t) {
+      var sh = ss.getSheetByName(t.sheet);
+      if (!sh || sh.getLastRow() < 2) return;
+      var vals = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getDisplayValues();
+      for (var r = vals.length - 1; r >= 0; r--) {
+        var match = t.cols.some(function (cIdx) {
+          var v = upperV2_(vals[r][cIdx - 1]);
+          return v === testSku || v === testProdBarcode || v === upperV2_(testTailorName);
+        });
+        if (match) sh.deleteRow(r + 2);
+      }
+    });
+    invalidateAppCache_();
+  };
+
+  try {
+    cleanupTestRows();
+
+    // 1. Uji Simpan Master Tailor Multi-Variasi
+    var r1 = saveMasterTailor_(ss, {
+      barcode_kategori: testSku,
+      nama_kategori: 'Croptop Uji V6',
+      variants: [
+        { warna: 'Hitam', ukuran: 'XL', upah_per_pcs: 5000, status_aktif: true },
+        { warna: 'Putih', ukuran: 'L', upah_per_pcs: 5000, status_aktif: true }
+      ]
+    });
+    if (!r1.success) throw new Error('Step 1 Gagal: ' + r1.message);
+    steps.push('1. Master Tailor multi-variasi tersimpan.');
+
+    // 2. Uji Validasi QR SKU ke MASTER_TAILOR (Positif & Negatif)
+    var r2Valid = getTailorSkuAction_(ss, { sku: testSku });
+    if (!r2Valid.success || r2Valid.data.variants.length !== 2) {
+      throw new Error('Step 2a Gagal: Validasi SKU valid tidak mengembalikan 2 variasi.');
+    }
+    var r2Invalid = getTailorSkuAction_(ss, { sku: 'SKU-PALSU-999' });
+    if (r2Invalid.success) {
+      throw new Error('Step 2b Gagal: SKU tidak terdaftar seharusnya ditolak.');
+    }
+    steps.push('2. Validasi QR SKU ke Master Tailor (valid & tidak valid) lulus.');
+
+    // 3. Uji Penjahit Input Hasil Jahitan ke STOK_TAILOR
+    var r3 = submitStokTailor_(ss, {
+      barcode_kategori: testSku,
+      warna: 'Hitam',
+      ukuran: 'XL',
+      nama_penjahit: testTailorName,
+      qty: 10
+    });
+    if (!r3.success || r3.data.stok_ready !== 10) {
+      throw new Error('Step 3 Gagal: ' + r3.message);
+    }
+    steps.push('3. Input hasil jahitan (+10 pcs) ke STOK_TAILOR lulus.');
+
+    // Siapkan produk tujuan sementara di MASTER_PRODUK
+    var rProd = createProductActionV2_(ss, {
+      transaction_id: 'TEST-NEW-' + Date.now(),
+      barcode: testProdBarcode,
+      nama: 'Croptop Jadi Uji',
+      status_aktif: true,
+      attributes: [{ name: 'Warna', type: 'text', values: ['Hitam'] }],
+      variants: [{ attributes: { Warna: 'Hitam' }, active: true }],
+      nama_pelapor: 'System Test'
+    });
+    if (!rProd.success) throw new Error('Setup Produk Tujuan Gagal: ' + rProd.message);
+    var prodData = getProductActionV2_(ss, { barcode: testProdBarcode });
+    var targetVarId = prodData.data.variants[0].id;
+
+    // 4. Uji Terima ke Gudang Utama & QC (8 Lolos, 2 Reject -> Upah Rp 40.000)
+    var r4 = transferTailorToWarehouse_(ss, {
+      id_tailor: r3.data.id_tailor,
+      nama_penjahit: testTailorName,
+      qty_lolos: 8,
+      qty_gagal: 2,
+      alasan_gagal: 'Simulasi Reject',
+      barcode_produk_tujuan: testProdBarcode,
+      id_variasi_tujuan: targetVarId,
+      lokasi_tujuan: 'Rak Utama',
+      nama_penerima: 'Admin Uji'
+    });
+    if (!r4.success || r4.data.sisa_stok_tailor !== 0 || r4.data.total_upah !== 40000) {
+      throw new Error('Step 4 Gagal: ' + r4.message);
+    }
+    steps.push('4. Terima ke Gudang Utama & QC (8 lolos, 2 reject, upah Rp 40.000) lulus.');
+
+    // 5. Uji Rekap Upah UNPAID
+    invalidateAppCache_();
+    var r5 = getUnpaidUpah_(ss);
+    var foundTailor = r5.tailors.filter(function (t) { return upperV2_(t.nama_penjahit) === upperV2_(testTailorName); })[0];
+    if (!foundTailor || foundTailor.total_upah !== 40000) {
+      throw new Error('Step 5 Gagal: Tagihan UNPAID tidak sesuai.');
+    }
+    steps.push('5. Rekap upah UNPAID (Rp 40.000) terhitung akurat.');
+
+    // 6. Uji Penerbitan Slip Gaji & Pelunasan (PAID)
+    var r6 = generatePaySlip_(ss, {
+      nama_penjahit: testTailorName,
+      nama_admin: 'Admin Uji'
+    });
+    if (!r6.success || r6.data.total_upah !== 40000) {
+      throw new Error('Step 6 Gagal: ' + r6.message);
+    }
+    steps.push('6. Penerbitan Slip Gaji (' + r6.data.slip_id + ') & status PAID lulus.');
+
+    var summary = 'SEMUA 6 PENGUJIAN LULUS:\n' + steps.join('\n');
+    Logger.log(summary);
+    return { success: true, message: summary };
+  } finally {
+    cleanupTestRows();
+  }
 }
