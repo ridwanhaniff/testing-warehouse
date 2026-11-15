@@ -688,6 +688,16 @@
     </main>
   </div>
 
+  <!-- Overlay & Banner Validasi Loading (Anti-Double Klik) -->
+  <div id="global-lock-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+    <div style="background:#fff; padding:20px 28px; border-radius:14px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-width:300px;">
+      <div class="spinner" style="width:32px; height:32px; border:4px solid #e2e8f0; border-top-color:#4f46e5; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 12px;"></div>
+      <div id="lock-message" style="font-weight:700; color:#0f172a; font-size:14px;">Memproses data...</div>
+      <div style="font-size:12px; color:#64748b; margin-top:4px;">Mohon tunggu, jangan tutup halaman</div>
+    </div>
+  </div>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
   <div id="toast-root" class="pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center gap-2 px-4 pt-4"
     aria-live="polite"></div>
 
@@ -696,6 +706,20 @@
     const APP_CONFIG = { GAS_URL: 'https://script.google.com/macros/s/AKfycbyrTPpdKPyFI4EB5_vIPaq7oTyEQ7QLklzcY0f-BJi8KYATw0mq2NV107vwdjp4KDhc/exec' };
     const GAS_URL = APP_CONFIG.GAS_URL;
     function isGasConfigured() { return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(GAS_URL); }
+
+    const CACHE_STORAGE_KEY = 'IBS_CACHE_V5_1';
+    let isMutating = false;   // Kunci mutlak saat POST / simpan data
+    let isFetching = false;   // Mencegah fetch menumpuk
+    let isUserTyping = false; // Jeda auto-reload saat user mengisi form
+    let BOOTSTRAP_DATA = null;
+
+    // Deteksi otomatis jika user sedang mengetik di input/select/textarea
+    document.addEventListener('focusin', (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) isUserTyping = true;
+    });
+    document.addEventListener('focusout', () => {
+      setTimeout(() => { isUserTyping = false; }, 1500);
+    });
 
     let LOCATIONS = [];
     let TARIFS = [];
@@ -764,13 +788,119 @@
 
     async function apiPost(payload) {
       if (!isGasConfigured()) throw new Error('URL Apps Script belum diatur.');
-      const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const response = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
       const json = await response.json();
       if (!response.ok) throw new Error('Server HTTP ' + response.status);
       return json;
     }
 
+    // 1. VALIDASI LOADING & ANTI-DOUBLE SUBMIT UNTUK SEMUA AKSI SIMPAN (POST)
+    async function submitWithLock(action, payload, btnElement, loadingText = 'Menyimpan ke server...') {
+      if (isMutating) {
+        toast('Proses sebelumnya masih berjalan. Harap tunggu hingga selesai.', 'error');
+        return null;
+      }
+
+      isMutating = true;
+      const overlay = $('global-lock-overlay');
+      const msgEl = $('lock-message');
+      const origBtnHtml = btnElement ? btnElement.innerHTML : '';
+
+      if (msgEl) msgEl.textContent = loadingText;
+      if (overlay) overlay.style.display = 'flex';
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = '⏳ Memproses...';
+      }
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action, ...payload })
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || 'Gagal memproses data');
+
+        await syncAppData(true);
+        return json;
+      } catch (err) {
+        toast('Gagal: ' + err.message, 'error');
+        return null;
+      } finally {
+        isMutating = false;
+        if (overlay) overlay.style.display = 'none';
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = origBtnHtml;
+        }
+      }
+    }
+
+    function renderActionCell(status, id) {
+      const st = String(status || '').toUpperCase();
+      const isLocked = ['SELESAI', 'APPROVED', 'REJECTED', 'DIBATALKAN', 'COMPLETED', 'CLOSED'].includes(st);
+
+      if (isLocked) {
+        return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-200 text-slate-600">
+          🔒 ${st} (Terkunci)
+        </span>`;
+      }
+
+      return `<button type="button" class="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm" onclick="openActionModal('${id}')">Proses / Verifikasi</button>`;
+    }
+
+    function renderAppState(data) {
+      if (!data) return;
+      BOOTSTRAP_DATA = data;
+      if (Array.isArray(data.locations) && data.locations.length > 0) {
+        LOCATIONS = data.locations;
+      }
+      if (Array.isArray(data.tarifs)) {
+        TARIFS = data.tarifs.map(t => ({
+          ID_Tarif: t.id_tarif,
+          Kode_Model_WIP: t.kode_model,
+          Deskripsi_Model: t.deskripsi,
+          Upah_Per_Pcs: t.upah,
+          Status_Aktif: true
+        }));
+      }
+    }
+
+    async function syncAppData(force = false) {
+      if (isFetching || isMutating) return;
+      if (!force && (isUserTyping || document.visibilityState !== 'visible')) return;
+
+      const localRaw = localStorage.getItem(CACHE_STORAGE_KEY);
+      if (localRaw && !window.__hasInitialRender) {
+        try {
+          renderAppState(JSON.parse(localRaw));
+          window.__hasInitialRender = true;
+        } catch (e) {}
+      }
+
+      isFetching = true;
+      try {
+        const res = await fetch(`${GAS_URL}?action=GET_BOOTSTRAP&_t=${Date.now()}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(json.data));
+          renderAppState(json.data);
+          window.__hasInitialRender = true;
+        }
+      } catch (e) {
+        console.warn('Background sync dilewati:', e);
+      } finally {
+        isFetching = false;
+      }
+    }
+
     async function loadLocations() {
+      if (LOCATIONS.length > 0) return LOCATIONS;
       try {
         const res = await apiPost({ action: 'GET_LOCATIONS' });
         if (res.success && res.data && Array.isArray(res.data.locations) && res.data.locations.length > 0) {
