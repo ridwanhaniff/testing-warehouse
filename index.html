@@ -494,6 +494,133 @@
             class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/20">Buat Work Order</button>
         </form>
       </section>
+      <!-- TERIMA & QC HASIL JAHITAN -->
+      <section id="screen-qc-jahit" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-qc"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"
+            aria-label="Kembali"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Terima & QC</h2>
+            <p class="text-xs text-slate-400">Verifikasi setoran jahit & masuk stok</p>
+          </div>
+          <button id="btn-refresh-qc" type="button"
+            class="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-cyan-700 shadow-sm ring-1 ring-slate-200 active:scale-95">Muat ulang</button>
+        </div>
+
+        <!-- Daftar Laporan PENDING -->
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Laporan Penjahit (PENDING)</h3>
+          <span id="qc-pending-badge"
+            class="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">0 PENDING</span>
+        </div>
+        <div id="qc-pending-list" class="space-y-2.5"></div>
+
+        <!-- Form Proses QC & Pemilih Variasi Produk Tujuan -->
+        <form id="form-qc-jahit" class="hidden mt-5 space-y-3" novalidate>
+          <div class="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 shadow-sm">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-cyan-700">Laporan Dipilih</p>
+                <h4 id="qc-selected-wo" class="mt-0.5 text-sm font-bold text-slate-900"></h4>
+                <p id="qc-selected-meta" class="mt-0.5 text-xs text-slate-600"></p>
+              </div>
+              <button type="button" id="btn-cancel-qc-select"
+                class="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">Tutup</button>
+            </div>
+            <div id="qc-wo-items-hint" class="mt-2 rounded-xl bg-white/80 px-3 py-2 text-[11px] text-slate-600"></div>
+          </div>
+
+          <!-- Hasil Pemeriksaan Fisik QC -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pemeriksaan Fisik</p>
+              <h4 class="mt-0.5 text-sm font-bold text-slate-800">Hasil Quality Control (QC)</h4>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total Terima</label>
+                <input id="qc-qty-terima" type="number" min="0" step="1"
+                  class="input-field w-full rounded-xl border border-slate-200 px-2.5 py-2.5 text-center text-base font-bold text-slate-800" required>
+              </div>
+              <div>
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Lolos QC</label>
+                <input id="qc-qty-lolos" type="number" min="0" step="1"
+                  class="input-field w-full rounded-xl border border-emerald-200 bg-emerald-50/60 px-2.5 py-2.5 text-center text-base font-bold text-emerald-800" required>
+              </div>
+              <div>
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-rose-700">Gagal / Reject</label>
+                <input id="qc-qty-gagal" type="number" min="0" step="1"
+                  class="input-field w-full rounded-xl border border-rose-200 bg-rose-50/60 px-2.5 py-2.5 text-center text-base font-bold text-rose-800" required>
+              </div>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan / Alasan Gagal (Opsional)</label>
+              <input id="qc-alasan-gagal" type="text"
+                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs"
+                placeholder="Contoh: Jahitan lepas 2 pcs, lainnya oke">
+            </div>
+          </div>
+
+          <!-- Pemilih Produk & Variasi Tujuan -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div>
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tujuan Stok Masuk</p>
+              <h4 class="mt-0.5 text-sm font-bold text-slate-800">Pilih Produk & Variasi Tujuan</h4>
+              <p class="mt-0.5 text-xs text-slate-400">Scan atau ketik barcode produk induk, lalu pilih variasi warna/ukuran.</p>
+            </div>
+
+            <div class="flex gap-2">
+              <input id="qc-barcode-input" type="text"
+                class="input-field min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono"
+                placeholder="Barcode produk induk..." autocomplete="off">
+              <button type="button" id="btn-qc-scan-toggle"
+                class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700">Scan</button>
+              <button type="button" id="btn-qc-cari-produk"
+                class="rounded-xl bg-slate-900 px-3.5 py-2.5 text-xs font-semibold text-white">Cari</button>
+            </div>
+
+            <div id="qc-scanner-wrap" class="hidden overflow-hidden rounded-xl bg-black">
+              <div id="qc-reader" class="min-h-[220px] w-full"></div>
+            </div>
+
+            <div id="qc-product-box" class="hidden border-t border-slate-100 pt-3 space-y-3">
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Produk Induk</p>
+                <p id="qc-product-name" class="text-sm font-bold text-slate-800"></p>
+              </div>
+              <div id="qc-variant-selectors" class="space-y-3"></div>
+              <div id="qc-variant-summary" class="hidden rounded-xl bg-indigo-50 px-3 py-2.5 text-xs text-indigo-900">
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">Variasi Tujuan Terpilih</p>
+                <p id="qc-variant-label" class="mt-0.5 font-bold"></p>
+                <p id="qc-variant-stock" class="mt-0.5 text-[11px] text-indigo-700"></p>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-3">
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lokasi Rak Tujuan</label>
+              <select id="qc-lokasi-tujuan"
+                class="input-field w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium"></select>
+            </div>
+          </div>
+
+          <!-- Petugas QC -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <label class="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Petugas QC / Penerima</label>
+            <input id="qc-nama-penerima" type="text" autocomplete="name"
+              class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-800"
+              placeholder="Ketik nama petugas QC..." required>
+          </div>
+
+          <button id="btn-submit-qc" type="submit"
+            class="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-600 px-4 py-4 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none">
+            <span>Simpan Hasil QC & Tambah Stok</span>
+          </button>
+        </form>
+      </section>
     </main>
   </div>
 
@@ -514,6 +641,7 @@
       opname: { label: 'Stock Opname', value: 'Opname', color: 'amber', fields: ['to'], labelTo: 'Lokasi opname', qty: 'Jumlah fisik', min: 0 },
       harga: { label: 'Harga & HPP', value: 'HargaHPP', color: 'teal', fields: [] },
       wojahit: { label: 'WO Jahit', value: 'WoJahit', color: 'indigo', fields: [] },
+      qcjahit: { label: 'Terima & QC', value: 'QcJahit', color: 'cyan', fields: [] },
       kelola: { label: 'Kelola Data', value: 'Kelola', color: 'slate', fields: [] },
       produk: { label: 'Produk Baru', value: 'ProdukBaru', color: 'violet', fields: [] }
     };
@@ -525,7 +653,8 @@
       teal: ['bg-teal-50', 'text-teal-700', 'bg-teal-600', 'border-teal-100'],
       slate: ['bg-slate-50', 'text-slate-700', 'bg-slate-600', 'border-slate-200'],
       violet: ['bg-violet-50', 'text-violet-700', 'bg-violet-500', 'border-violet-100'],
-      indigo: ['bg-indigo-50', 'text-indigo-700', 'bg-indigo-500', 'border-indigo-100']
+      indigo: ['bg-indigo-50', 'text-indigo-700', 'bg-indigo-500', 'border-indigo-100'],
+      cyan: ['bg-cyan-50', 'text-cyan-700', 'bg-cyan-600', 'border-cyan-100']
     };
     const ACTIVITY_ICONS = {
       masuk: '<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M5 18v3h14v-3"/>',
@@ -535,7 +664,8 @@
       harga: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
       kelola: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
       produk: '<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="9"/>',
-      wojahit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'
+      wojahit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+      qcjahit: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'
     };
 
     const $ = id => document.getElementById(id);
@@ -582,7 +712,7 @@
         const style = COLOR_STYLE[activity.color];
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `flex ${key === 'kelola' || key === 'produk' ? 'col-span-2 flex-row items-center' : 'flex-col'} gap-3 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
+        button.className = `flex ${key === 'kelola' || key === 'produk' || key === 'qcjahit' ? 'col-span-2 flex-row items-center' : 'flex-col'} gap-3 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
         const icon = document.createElement('span'); icon.className = `flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white`;
         icon.innerHTML = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>`;
         const label = document.createElement('span'); label.className = `text-sm font-bold ${style[1]}`; label.textContent = activity.label;
@@ -591,12 +721,14 @@
           : key === 'produk' ? 'Daftarkan barcode & HPP awal'
           : key === 'harga' ? 'Set HPP, Harga Jual & Margin'
           : key === 'wojahit' ? 'Buat WO produksi'
+          : key === 'qcjahit' ? 'Verifikasi hasil jahit & tambah stok'
           : 'Scan dan catat stok';
         const wrapper = document.createElement('span'); wrapper.className = 'flex flex-col gap-1'; wrapper.append(label, desc);
         button.append(icon, wrapper);
         button.addEventListener('click', () => {
           if (key === 'opname') openOpnameSessions();
           else if (key === 'wojahit') openWoJahitForm();
+          else if (key === 'qcjahit') openQcJahitScreen();
           else startScan(key, true);
         });
         $('activity-list').appendChild(button);
@@ -604,7 +736,7 @@
     }
 
     function showScreen(screen, pushHistory = true) {
-      ['home', 'scan', 'form', 'opname-sessions', 'harga', 'wo-jahit'].forEach(name => {
+      ['home', 'scan', 'form', 'opname-sessions', 'harga', 'wo-jahit', 'qc-jahit'].forEach(name => {
         const el = $('screen-' + name); const active = name === screen;
         el.classList.toggle('hidden', !active);
         if (active) { el.classList.remove('screen-enter'); void el.offsetWidth; el.classList.add('screen-enter'); }
@@ -615,7 +747,8 @@
         form: 'Input data gudang',
         'opname-sessions': 'Manajemen Sesi Opname',
         harga: 'Pengaturan HPP & Harga Jual',
-        'wo-jahit': 'Work Order Jahit'
+        'wo-jahit': 'Work Order Jahit',
+        'qc-jahit': 'Terima & QC Hasil Jahitan'
       };
       $('header-label').textContent = labels[screen] || '';
       if (pushHistory) history.pushState({ app: true, screen }, '', '#' + screen);
@@ -623,12 +756,13 @@
 
     async function navigateBack() {
       if (history.state && history.state.app && history.state.screen !== 'home') { history.back(); return; }
-      await stopScanner(); showScreen('home', false); history.replaceState({ app: true, screen: 'home' }, '', '#home');
+      await stopScanner(); await stopQcScanner(); showScreen('home', false); history.replaceState({ app: true, screen: 'home' }, '', '#home');
     }
 
     window.addEventListener('popstate', async (event) => {
       const target = event.state && event.state.app ? event.state.screen : 'home';
       await stopScanner();
+      await stopQcScanner();
       showScreen(target || 'home', false);
       if (target === 'scan' && state.key) startCamera();
     });
@@ -895,6 +1029,298 @@
         if (!res.success) throw new Error(res.message);
         toast('Work Order Jahit dibuat: ' + res.data.nomor_wo); navigateBack();
       } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Buat Work Order'; }
+    });
+
+
+    // --- LOGIC TERIMA & QC HASIL JAHITAN ---
+    const qcState = {
+      reports: [],
+      selectedReport: null,
+      product: null,
+      selectedAttributes: {},
+      selectedVariant: null,
+      scanner: null,
+      scannerRunning: false
+    };
+
+    async function stopQcScanner() {
+      if (!qcState.scanner) return;
+      const cur = qcState.scanner;
+      qcState.scanner = null;
+      try { if (qcState.scannerRunning) await cur.stop(); } catch (e) { }
+      qcState.scannerRunning = false;
+      try { await cur.clear(); } catch (e) { }
+      $('qc-scanner-wrap').classList.add('hidden');
+    }
+
+    async function openQcJahitScreen() {
+      state.key = 'qcjahit';
+      qcState.selectedReport = null;
+      qcState.product = null;
+      qcState.selectedAttributes = {};
+      qcState.selectedVariant = null;
+      await stopQcScanner();
+      showScreen('qc-jahit', true);
+      $('form-qc-jahit').classList.add('hidden');
+      await loadLocations();
+      const selLoc = $('qc-lokasi-tujuan');
+      selLoc.innerHTML = '';
+      LOCATIONS.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l.value;
+        opt.textContent = l.label;
+        selLoc.appendChild(opt);
+      });
+      await loadPendingQcReports();
+    }
+
+    async function loadPendingQcReports() {
+      const list = $('qc-pending-list');
+      const badge = $('qc-pending-badge');
+      list.innerHTML = '<p class="py-4 text-center text-xs text-slate-400">Memuat laporan PENDING...</p>';
+      try {
+        const res = await apiPost({ action: 'GET_PENDING_QC' });
+        if (!res.success) throw new Error(res.message);
+        const reports = (res.data && res.data.reports) || [];
+        qcState.reports = reports;
+        badge.textContent = `${reports.length} PENDING`;
+        renderPendingQcList(reports);
+      } catch (e) {
+        badge.textContent = 'ERROR';
+        list.innerHTML = `<div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700">${e.message}</div>`;
+      }
+    }
+
+    function renderPendingQcList(reports) {
+      const list = $('qc-pending-list');
+      list.innerHTML = '';
+      if (!reports.length) {
+        list.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center"><p class="text-sm font-semibold text-slate-600">Tidak ada laporan PENDING</p><p class="mt-1 text-xs text-slate-400">Semua setoran jahitan sudah diproses QC.</p></div>';
+        return;
+      }
+      reports.forEach(rep => {
+        const card = document.createElement('div');
+        const isSelected = qcState.selectedReport && qcState.selectedReport.report_id === rep.report_id;
+        card.className = `rounded-2xl border p-4 shadow-sm transition ${isSelected ? 'border-cyan-500 bg-cyan-50/40' : 'border-slate-200 bg-white'}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="inline-block rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">PENDING</span>
+              <h4 class="mt-1 text-sm font-bold text-slate-800">${rep.nomor_wo || '-'} · ${rep.nama_penjahit || '-'}</h4>
+              <p class="mt-0.5 text-xs text-slate-500">${rep.tim_label ? 'Tim: ' + rep.tim_label + ' · ' : ''}Klaim: <strong class="text-emerald-700">${rep.qty_bagus || 0} bagus</strong> · <strong class="text-rose-600">${rep.qty_cacat || 0} cacat</strong></p>
+              ${rep.target_summary ? `<p class="mt-1 text-[11px] text-slate-400">Target WO: ${rep.target_summary}</p>` : ''}
+            </div>
+            <button type="button" data-select-qc class="shrink-0 rounded-xl bg-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-sm active:scale-95">Proses QC</button>
+          </div>
+        `;
+        card.querySelector('[data-select-qc]').addEventListener('click', () => selectPendingQcReport(rep));
+        list.appendChild(card);
+      });
+    }
+
+    function selectPendingQcReport(rep) {
+      qcState.selectedReport = rep;
+      qcState.product = null;
+      qcState.selectedAttributes = {};
+      qcState.selectedVariant = null;
+      renderPendingQcList(qcState.reports);
+
+      const form = $('form-qc-jahit');
+      form.classList.remove('hidden');
+      $('qc-selected-wo').textContent = `${rep.nomor_wo || '-'} · Penjahit: ${rep.nama_penjahit || '-'}`;
+      $('qc-selected-meta').textContent = `ID Laporan: ${rep.report_id} · Klaim: ${rep.qty_bagus || 0} bagus, ${rep.qty_cacat || 0} cacat`;
+      $('qc-wo-items-hint').textContent = rep.target_summary ? `Detail Item WO: ${rep.target_summary}` : 'Pilih barcode & variasi produk tujuan untuk menambah stok hasil QC.';
+
+      const bagus = Number(rep.qty_bagus) || 0;
+      const cacat = Number(rep.qty_cacat) || 0;
+      $('qc-qty-terima').value = bagus + cacat;
+      $('qc-qty-lolos').value = bagus;
+      $('qc-qty-gagal').value = cacat;
+      $('qc-alasan-gagal').value = '';
+      $('qc-barcode-input').value = '';
+      $('qc-product-box').classList.add('hidden');
+      $('qc-variant-summary').classList.add('hidden');
+      if (rep.lokasi_tujuan && LOCATIONS.some(l => l.value === rep.lokasi_tujuan)) {
+        $('qc-lokasi-tujuan').value = rep.lokasi_tujuan;
+      }
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function lookupQcProduct(barcode) {
+      const code = (barcode || '').trim();
+      if (!code) return toast('Masukkan atau scan barcode produk tujuan.', 'error');
+      $('qc-barcode-input').value = code;
+      try {
+        const res = await apiPost({ action: 'GET_PRODUCT', barcode: code, include_inactive: false });
+        if (!res.success) return toast(res.message || 'Produk tidak ditemukan.', 'error');
+        qcState.product = res.data;
+        qcState.selectedAttributes = {};
+        qcState.selectedVariant = null;
+        $('qc-product-box').classList.remove('hidden');
+        $('qc-product-name').textContent = `${res.data.nama} (${res.data.barcode})`;
+        renderQcVariantSelector(res.data);
+      } catch (e) {
+        toast(e.message || 'Gagal memuat produk.', 'error');
+      }
+    }
+
+    function renderQcVariantSelector(product) {
+      const root = $('qc-variant-selectors');
+      root.innerHTML = '';
+      const activeVariants = (product.variants || []).filter(v => v.active);
+      const definitions = (product.attributes || []).filter(a => (a.values || []).length);
+      if (!activeVariants.length) {
+        root.innerHTML = '<p class="text-xs text-rose-600">Tidak ada variasi aktif pada produk ini.</p>';
+        return;
+      }
+      if (!definitions.length) {
+        qcState.selectedVariant = activeVariants[0];
+        applyQcSelectedVariant(activeVariants[0]);
+        return;
+      }
+      $('qc-variant-summary').classList.add('hidden');
+      definitions.forEach((definition, index) => {
+        const group = document.createElement('div');
+        const label = document.createElement('p');
+        label.className = 'mb-1.5 text-xs font-semibold text-slate-500';
+        label.textContent = 'Pilih ' + definition.name;
+        const options = document.createElement('div');
+        options.className = 'flex flex-wrap gap-2';
+
+        const selectedBefore = {};
+        definitions.slice(0, index).forEach(d => {
+          if (qcState.selectedAttributes[d.name]) selectedBefore[d.name] = qcState.selectedAttributes[d.name];
+        });
+        const eligible = activeVariants.filter(v => Object.keys(selectedBefore).every(k => v.attributes[k] === selectedBefore[k]));
+        const values = [];
+        eligible.forEach(v => {
+          const value = v.attributes[definition.name];
+          if (value !== undefined && !values.some(x => x.value === value)) {
+            values.push({ value, hex: (definition.values || []).find(x => x.value === value)?.hex || '' });
+          }
+        });
+
+        values.forEach(option => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'choice-btn flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold';
+          if (qcState.selectedAttributes[definition.name] === option.value) btn.classList.add('selected');
+          if (definition.type === 'color') {
+            const swatch = document.createElement('span');
+            swatch.className = 'h-3.5 w-3.5 rounded border border-slate-300';
+            swatch.style.backgroundColor = option.hex || '#cbd5e1';
+            btn.appendChild(swatch);
+          }
+          const txt = document.createElement('span');
+          txt.textContent = option.value;
+          btn.appendChild(txt);
+          btn.addEventListener('click', () => {
+            qcState.selectedAttributes[definition.name] = option.value;
+            definitions.slice(index + 1).forEach(d => delete qcState.selectedAttributes[d.name]);
+            resolveQcSelectedVariant();
+            renderQcVariantSelector(product);
+          });
+          options.appendChild(btn);
+        });
+
+        group.append(label, options);
+        root.appendChild(group);
+      });
+      resolveQcSelectedVariant();
+    }
+
+    function resolveQcSelectedVariant() {
+      const definitions = qcState.product.attributes || [];
+      const active = (qcState.product.variants || []).filter(v => v.active);
+      const complete = definitions.every(d => !!qcState.selectedAttributes[d.name]);
+      qcState.selectedVariant = complete ? active.find(v => definitions.every(d => v.attributes[d.name] === qcState.selectedAttributes[d.name])) || null : null;
+      if (qcState.selectedVariant) applyQcSelectedVariant(qcState.selectedVariant);
+      else $('qc-variant-summary').classList.add('hidden');
+    }
+
+    function applyQcSelectedVariant(v) {
+      $('qc-variant-summary').classList.remove('hidden');
+      $('qc-variant-label').textContent = v.label || 'Standar';
+      $('qc-variant-stock').textContent = 'Stok saat ini: ' + stockSummary(v);
+    }
+
+    $('btn-back-qc').addEventListener('click', navigateBack);
+    $('btn-refresh-qc').addEventListener('click', loadPendingQcReports);
+    $('btn-cancel-qc-select').addEventListener('click', () => {
+      qcState.selectedReport = null;
+      $('form-qc-jahit').classList.add('hidden');
+      renderPendingQcList(qcState.reports);
+    });
+    $('btn-qc-cari-produk').addEventListener('click', () => lookupQcProduct($('qc-barcode-input').value));
+    $('qc-barcode-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); lookupQcProduct($('qc-barcode-input').value); }
+    });
+    $('btn-qc-scan-toggle').addEventListener('click', async () => {
+      if (qcState.scannerRunning) { await stopQcScanner(); return; }
+      if (!window.Html5Qrcode) return toast('Scanner kamera tidak tersedia.', 'error');
+      $('qc-scanner-wrap').classList.remove('hidden');
+      try {
+        const sc = new Html5Qrcode('qc-reader', { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8] });
+        qcState.scanner = sc;
+        await sc.start({ facingMode: 'environment' }, { fps: 12, qrbox: { width: 200, height: 200 } }, async decoded => {
+          playBeep();
+          await stopQcScanner();
+          await lookupQcProduct(decoded.trim());
+        }, () => { });
+        qcState.scannerRunning = true;
+      } catch (e) {
+        $('qc-scanner-wrap').classList.add('hidden');
+        toast('Kamera gagal dibuka. Ketik barcode secara manual.', 'error');
+      }
+    });
+
+    $('form-qc-jahit').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!qcState.selectedReport) return toast('Pilih laporan PENDING terlebih dahulu.', 'error');
+      if (!qcState.product || !qcState.selectedVariant) return toast('Pilih produk dan variasi tujuan terlebih dahulu.', 'error');
+
+      const qtyTerima = parseInt($('qc-qty-terima').value) || 0;
+      const qtyLolos = parseInt($('qc-qty-lolos').value) || 0;
+      const qtyGagal = parseInt($('qc-qty-gagal').value) || 0;
+      const alasanGagal = $('qc-alasan-gagal').value.trim();
+      const lokasiTujuan = $('qc-lokasi-tujuan').value;
+      const namaPenerima = $('qc-nama-penerima').value.trim();
+
+      if (qtyTerima <= 0) return toast('Total terima harus lebih dari 0.', 'error');
+      if (qtyLolos < 0 || qtyGagal < 0) return toast('Kuantitas QC tidak boleh negatif.', 'error');
+      if (!lokasiTujuan) return toast('Pilih lokasi rak tujuan.', 'error');
+      if (!namaPenerima) return toast('Nama petugas QC / penerima wajib diisi.', 'error');
+
+      const btn = $('btn-submit-qc');
+      btn.disabled = true;
+      btn.querySelector('span').textContent = 'Menyimpan QC...';
+      try {
+        const res = await apiPost({
+          action: 'SUBMIT_QC_RECEIPT',
+          transaction_id: newTransactionId(),
+          report_id: qcState.selectedReport.report_id,
+          wo_id: qcState.selectedReport.wo_id || '',
+          nomor_wo: qcState.selectedReport.nomor_wo || '',
+          nama_penerima: namaPenerima,
+          qty_terima: qtyTerima,
+          qty_lolos: qtyLolos,
+          qty_gagal: qtyGagal,
+          alasan_gagal: alasanGagal,
+          barcode_wip: qcState.product.barcode,
+          id_variasi_wip: qcState.selectedVariant.id,
+          lokasi_tujuan: lokasiTujuan
+        });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message || 'QC berhasil disimpan & stok diperbarui!');
+        qcState.selectedReport = null;
+        $('form-qc-jahit').classList.add('hidden');
+        await loadPendingQcReports();
+      } catch (err) {
+        toast(err.message || 'Gagal menyimpan hasil QC.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Simpan Hasil QC & Tambah Stok';
+      }
     });
 
     // --- SCANNER & FLOW ---
