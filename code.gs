@@ -1,11 +1,12 @@
 /**
- * INA BASIC STORE - Warehouse V5.0 (Simplified HPP & Profit Edition + QC Jahit)
- * Perubahan V5.0:
- * - Modul MASTER_BAHAN dan PENGIRIMAN_BAHAN dihapus untuk menyederhanakan alur operasional.
- * - HPP, Harga_Jual, Margin_Rp, dan Margin_Persen langsung melekat pada VARIASI_PRODUK.
- * - OPERATION_LOG mencatat snapshot HPP_Satuan, Harga_Jual_Satuan, Total_Omzet, dan Total_Profit.
- * - Stock opname tetap terkontrol melalui sesi (CREATE_OPNAME_SESSION / SUBMIT_OPNAME_COUNT / APPROVE_OPNAME_SESSION).
- * - Modul WO_JAHIT, LAPORAN_JAHIT (penjahit.html), dan Terima & QC (index.html) terintegrasi penuh.
+ * INA BASIC STORE - Warehouse V5.1 (HPP, Profit, QC Jahit & Auto-Cleanup)
+ * Pembaruan V5.1:
+ * - Menghapus otomatis tab/sheet lama yang sudah tidak terpakai saat setup() dijalankan
+ *   (MASTER_BAHAN, PENGIRIMAN_BAHAN, STOK_BAHAN, LOG_BAHAN, STOK_LOKASI, MIGRASI_ALOKASI, dan Sheet1 kosong).
+ * - Memastikan seluruh sheet operasional (WO_JAHIT, WO_JAHIT_ITEM, LAPORAN_JAHIT, OPNAME_SESI,
+ *   OPNAME_DETAIL, MASTER_LOKASI, ATRIBUT_PRODUK) otomatis tersedia sebelum transaksi berjalan.
+ * - Validasi kuantitas QC (Qty_Lolos + Qty_Gagal <= Qty_Terima) & idempotensi update harga/HPP.
+ * - Mendukung debug parameter action di doGet(e) untuk pengecekan cepat lewat browser.
  */
 
 var IBS = {
@@ -13,15 +14,21 @@ var IBS = {
   SHEET_ATTRIBUTES: 'ATRIBUT_PRODUK',
   SHEET_VARIANTS: 'VARIASI_PRODUK',
   SHEET_STOCK: 'STOK_VARIASI',
-  SHEET_LEGACY_STOCK: 'STOK_LOKASI',
   SHEET_LOG: 'OPERATION_LOG',
-  SHEET_MIGRATION: 'MIGRASI_ALOKASI',
   SHEET_LOCATIONS: 'MASTER_LOKASI',
   SHEET_OPNAME_SESI: 'OPNAME_SESI',
   SHEET_OPNAME_DETAIL: 'OPNAME_DETAIL',
   SHEET_WO_JAHIT: 'WO_JAHIT',
   SHEET_WO_JAHIT_ITEM: 'WO_JAHIT_ITEM',
   SHEET_LAPORAN_JAHIT: 'LAPORAN_JAHIT',
+  DEPRECATED_SHEETS: [
+    'MASTER_BAHAN',
+    'PENGIRIMAN_BAHAN',
+    'STOK_BAHAN',
+    'LOG_BAHAN',
+    'STOK_LOKASI',
+    'MIGRASI_ALOKASI'
+  ],
   LOCK_TIMEOUT_MS: 15000,
   HEADERS: {
     MASTER_PRODUK: ['Barcode', 'Nama', 'Status_Aktif', 'Created_At', 'Updated_At'],
@@ -29,7 +36,6 @@ var IBS = {
     VARIASI_PRODUK: ['ID_Variasi', 'Barcode_Induk', 'Label_Variasi', 'Atribut_JSON', 'Status_Aktif', 'Created_At', 'Updated_At', 'HPP', 'Harga_Jual', 'Margin_Rp', 'Margin_Persen'],
     STOK_VARIASI: ['ID_Variasi', 'Barcode_Induk', 'Lokasi_Rak', 'Kuantitas', 'Updated_At'],
     OPERATION_LOG: ['Timestamp', 'ID_Transaksi', 'Aktivitas', 'Barcode', 'Lokasi_Asal', 'Lokasi_Tujuan', 'Qty', 'Status', 'ID_Variasi', 'Nama_Produk', 'Variasi_JSON', 'Label_Variasi', 'Produk_Tampilan', 'Nama_Pelapor', 'HPP_Satuan', 'Harga_Jual_Satuan', 'Total_Omzet', 'Total_Profit'],
-    MIGRASI_ALOKASI: ['Barcode_Induk', 'Lokasi_Rak', 'ID_Variasi', 'Kuantitas'],
     MASTER_LOKASI: ['Kode_Lokasi', 'Nama_Lokasi', 'Jenis_Lokasi', 'Status_Aktif', 'Created_At'],
     OPNAME_SESI: ['Session_ID', 'Nama_Sesi', 'Lokasi', 'Status', 'Dibuat_Oleh', 'Waktu_Mulai', 'Waktu_Selesai'],
     OPNAME_DETAIL: ['Detail_ID', 'Session_ID', 'Barcode', 'ID_Variasi', 'Label_Variasi', 'Qty_Sistem_Snapshot', 'Qty_Fisik', 'Nama_Pelapor', 'Waktu', 'Status_Hitung'],
@@ -41,27 +47,14 @@ var IBS = {
 
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER, IBS.HEADERS.MASTER_PRODUK);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_ATTRIBUTES, IBS.HEADERS.ATRIBUT_PRODUK);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_VARIANTS, IBS.HEADERS.VARIASI_PRODUK);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_STOCK, IBS.HEADERS.STOK_VARIASI);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_LOG, IBS.HEADERS.OPERATION_LOG);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_MIGRATION, IBS.HEADERS.MIGRASI_ALOKASI);
+  ensureAllOperationalSheets_(ss);
 
-  var locSheet = ensureSheetHeadersV2_(ss, IBS.SHEET_LOCATIONS, IBS.HEADERS.MASTER_LOKASI);
-  if (locSheet.getLastRow() === 1) {
-    locSheet.appendRow(['RAK-UTAMA', 'Rak Utama', 'warehouse', true, new Date()]);
-  }
-
-  ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_DETAIL, IBS.HEADERS.OPNAME_DETAIL);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT, IBS.HEADERS.WO_JAHIT);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT_ITEM, IBS.HEADERS.WO_JAHIT_ITEM);
-  ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
+  // Hapus tab/sheet lama yang sudah tidak terpakai
+  var deletedSheets = cleanupUnusedSheets_(ss);
 
   var sheets = [
     IBS.SHEET_MASTER, IBS.SHEET_ATTRIBUTES, IBS.SHEET_VARIANTS, IBS.SHEET_STOCK,
-    IBS.SHEET_LOG, IBS.SHEET_MIGRATION, IBS.SHEET_LOCATIONS, IBS.SHEET_OPNAME_SESI,
+    IBS.SHEET_LOG, IBS.SHEET_LOCATIONS, IBS.SHEET_OPNAME_SESI,
     IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_WO_JAHIT, IBS.SHEET_WO_JAHIT_ITEM,
     IBS.SHEET_LAPORAN_JAHIT
   ];
@@ -83,7 +76,6 @@ function setup() {
   ss.getSheetByName(IBS.SHEET_LOG).getRange('B:B').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_LOG).getRange('D:F').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_LOG).getRange('I:I').setNumberFormat('@');
-  ss.getSheetByName(IBS.SHEET_MIGRATION).getRange('A:C').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_OPNAME_DETAIL).getRange('B:D').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT).getRange('A:D').setNumberFormat('@');
   ss.getSheetByName(IBS.SHEET_LAPORAN_JAHIT).getRange('N:O').setNumberFormat('@');
@@ -97,13 +89,76 @@ function setup() {
   var shLog = ss.getSheetByName(IBS.SHEET_LOG);
   shLog.getRange('O2:R').setNumberFormat('#,##0');
 
+  var locSheet = ss.getSheetByName(IBS.SHEET_LOCATIONS);
+
   // Bersihkan checkbox kosong di bawah data terakhir agar getLastRow() akurat
   cleanAndApplyCheckboxV2_(ss.getSheetByName(IBS.SHEET_MASTER), 3);
   cleanAndApplyCheckboxV2_(ss.getSheetByName(IBS.SHEET_ATTRIBUTES), 8);
   cleanAndApplyCheckboxV2_(shVar, 5);
   cleanAndApplyCheckboxV2_(locSheet, 4);
 
-  return true;
+  var msg = 'Setup V5.1 selesai.';
+  if (deletedSheets.length > 0) {
+    msg += ' Tab dihapus: ' + deletedSheets.join(', ');
+  }
+  Logger.log(msg);
+  try {
+    ss.toast(msg, 'Ina Basic Store V5.1', 6);
+  } catch (e) {}
+
+  return { success: true, message: msg, deleted_sheets: deletedSheets };
+}
+
+function hapusTabTidakTerpakai() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var deleted = cleanupUnusedSheets_(ss);
+  var msg = deleted.length
+    ? 'Berhasil menghapus tab tidak terpakai: ' + deleted.join(', ')
+    : 'Tidak ada tab lama yang perlu dihapus.';
+  Logger.log(msg);
+  try {
+    ss.toast(msg, 'Pembersihan Tab', 6);
+  } catch (e) {}
+  return deleted;
+}
+
+function cleanupUnusedSheets_(ss) {
+  var deleted = [];
+  IBS.DEPRECATED_SHEETS.forEach(function (name) {
+    var sh = ss.getSheetByName(name);
+    if (sh && ss.getSheets().length > 1) {
+      ss.deleteSheet(sh);
+      deleted.push(name);
+    }
+  });
+
+  // Hapus tab bawaan 'Sheet1' jika masih kosong dan sudah ada sheet lain
+  var defaultSheet = ss.getSheetByName('Sheet1');
+  if (defaultSheet && defaultSheet.getLastRow() === 0 && ss.getSheets().length > 1) {
+    ss.deleteSheet(defaultSheet);
+    deleted.push('Sheet1');
+  }
+
+  return deleted;
+}
+
+function ensureAllOperationalSheets_(ss) {
+  ensureSheetHeadersV2_(ss, IBS.SHEET_MASTER, IBS.HEADERS.MASTER_PRODUK);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_ATTRIBUTES, IBS.HEADERS.ATRIBUT_PRODUK);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_VARIANTS, IBS.HEADERS.VARIASI_PRODUK);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_STOCK, IBS.HEADERS.STOK_VARIASI);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_LOG, IBS.HEADERS.OPERATION_LOG);
+
+  var locSheet = ensureSheetHeadersV2_(ss, IBS.SHEET_LOCATIONS, IBS.HEADERS.MASTER_LOKASI);
+  if (locSheet.getLastRow() === 1) {
+    locSheet.appendRow(['RAK-UTAMA', 'Rak Utama', 'warehouse', true, new Date()]);
+  }
+
+  ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_DETAIL, IBS.HEADERS.OPNAME_DETAIL);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT, IBS.HEADERS.WO_JAHIT);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT_ITEM, IBS.HEADERS.WO_JAHIT_ITEM);
+  ensureSheetHeadersV2_(ss, IBS.SHEET_LAPORAN_JAHIT, IBS.HEADERS.LAPORAN_JAHIT);
 }
 
 function syncVariantMarginFormulas_(shVar) {
@@ -133,7 +188,7 @@ function cleanAndApplyCheckboxV2_(sheet, checkboxCol) {
     }
   }
   if (maxRows > lastRealRow) {
-    var emptyRange = sheet.getRange(lastRealRow + 1, 1, maxRows - lastRealRow, sheet.getLastColumn());
+    var emptyRange = sheet.getRange(lastRealRow + 1, 1, maxRows - lastRealRow, Math.max(sheet.getLastColumn(), 1));
     emptyRange.clearDataValidations();
     emptyRange.clearContent();
   }
@@ -168,10 +223,16 @@ function ensureSheetHeadersV2_(ss, name, headers) {
 }
 
 function assertV2SheetsReady_(ss) {
-  var required = [IBS.SHEET_MASTER, IBS.SHEET_VARIANTS, IBS.SHEET_STOCK, IBS.SHEET_LOG];
-  required.forEach(function (name) {
-    if (!ss.getSheetByName(name)) throw new Error('Sheet ' + name + ' belum tersedia. Jalankan fungsi setup() terlebih dahulu.');
-  });
+  var required = [
+    IBS.SHEET_MASTER, IBS.SHEET_ATTRIBUTES, IBS.SHEET_VARIANTS, IBS.SHEET_STOCK,
+    IBS.SHEET_LOG, IBS.SHEET_LOCATIONS, IBS.SHEET_OPNAME_SESI,
+    IBS.SHEET_OPNAME_DETAIL, IBS.SHEET_WO_JAHIT, IBS.SHEET_WO_JAHIT_ITEM,
+    IBS.SHEET_LAPORAN_JAHIT
+  ];
+  var missing = required.some(function (name) { return !ss.getSheetByName(name); });
+  if (missing) {
+    ensureAllOperationalSheets_(ss);
+  }
 }
 
 function getActiveLocationsV2_(ss) {
@@ -192,8 +253,28 @@ function isValidLocationV2_(ss, value) {
   return locs.some(function (l) { return l.value === textV2_(value); });
 }
 
-function doGet() {
-  return jsonResponseV2_(true, 'Ina Basic Store Warehouse API V5.0 (HPP, Profit & QC Jahit) aktif.', { version: '5.0' });
+function doGet(e) {
+  var action = e && e.parameter && e.parameter.action ? upperV2_(e.parameter.action) : '';
+  if (action === 'GET_PENDING_QC') {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    assertV2SheetsReady_(ss);
+    return jsonResponseV2_(true, 'Daftar laporan pending.', getPendingQcReports_(ss));
+  }
+  if (action === 'GET_ACTIVE_WO') {
+    var ssWo = SpreadsheetApp.getActiveSpreadsheet();
+    assertV2SheetsReady_(ssWo);
+    return jsonResponseV2_(true, 'Daftar WO aktif.', getActiveWoJahit_(ssWo));
+  }
+  return jsonResponseV2_(true, 'Ina Basic Store Warehouse API V5.1 (HPP, Profit & QC Jahit) aktif.', {
+    version: '5.1',
+    supported_actions: [
+      'GET_PRODUCT', 'GET_LOCATIONS', 'GET_OPNAME_SESSIONS', 'GET_ACTIVE_WO', 'GET_PENDING_QC',
+      'CREATE_PRODUCT', 'ADD_VARIANTS', 'UPDATE_PRODUCT', 'SET_VARIANT_STATUS',
+      'UPDATE_VARIANT_PRICING', 'SAVE_TRANSACTION', 'DEACTIVATE_PRODUCT',
+      'CREATE_OPNAME_SESSION', 'SUBMIT_OPNAME_COUNT', 'APPROVE_OPNAME_SESSION',
+      'CREATE_WO_JAHIT', 'SUBMIT_LAPORAN_JAHIT', 'SUBMIT_QC_RECEIPT'
+    ]
+  });
 }
 
 function doPost(e) {
@@ -227,6 +308,7 @@ function doPost(e) {
 
   if (action === 'GET_LOCATIONS') {
     try {
+      assertV2SheetsReady_(ss);
       return jsonResponseV2_(true, 'Daftar lokasi aktif.', { locations: getActiveLocationsV2_(ss) });
     } catch (locError) {
       return jsonResponseV2_(false, 'Kesalahan server: ' + (locError.message || String(locError)));
@@ -245,6 +327,7 @@ function doPost(e) {
 
   if (action === 'GET_ACTIVE_WO') {
     try {
+      assertV2SheetsReady_(ss);
       return jsonResponseV2_(true, 'Daftar WO aktif.', getActiveWoJahit_(ss));
     } catch (err) {
       return jsonResponseV2_(false, 'Kesalahan server: ' + err.message);
@@ -253,6 +336,7 @@ function doPost(e) {
 
   if (action === 'GET_PENDING_QC') {
     try {
+      assertV2SheetsReady_(ss);
       return jsonResponseV2_(true, 'Daftar laporan pending.', getPendingQcReports_(ss));
     } catch (err) {
       return jsonResponseV2_(false, 'Kesalahan server: ' + err.message);
@@ -586,15 +670,20 @@ function updateVariantPricingActionV5_(ss, payload) {
   var barcode = textV2_(payload.barcode);
   var items = payload.items || [];
   var pelapor = textV2_(payload.nama_pelapor) || 'Admin';
+  var trxId = textV2_(payload.transaction_id) || ('PRICE-' + Utilities.getUuid().substring(0, 8).toUpperCase());
 
   if (!barcode) return { success: false, message: 'Barcode wajib diisi.' };
   if (!Array.isArray(items) || !items.length) return { success: false, message: 'Tidak ada data harga/HPP yang dikirim.' };
+
+  var shLog = ss.getSheetByName(IBS.SHEET_LOG);
+  if (payload.transaction_id && trxExistsV2_(shLog, trxId)) {
+    return { success: false, message: 'ID transaksi sudah pernah diproses.' };
+  }
 
   var product = findMasterV2_(ss.getSheetByName(IBS.SHEET_MASTER), barcode);
   if (!product) return { success: false, message: 'Produk tidak ditemukan.' };
 
   var shVar = ss.getSheetByName(IBS.SHEET_VARIANTS);
-  var shLog = ss.getSheetByName(IBS.SHEET_LOG);
   var varRows = readObjectsV2_(shVar);
   var rowMap = {};
   varRows.forEach(function (r) {
@@ -628,7 +717,6 @@ function updateVariantPricingActionV5_(ss, payload) {
   });
 
   if (updatedCount > 0) {
-    var trxId = textV2_(payload.transaction_id) || ('PRICE-' + Utilities.getUuid().substring(0, 8).toUpperCase());
     shLog.appendRow([now, trxId, 'UpdateHargaHPP', barcode, '', '', updatedCount, 'SUCCESS', '', product.name, '', updatedCount + ' variasi', product.name + ' (Update HPP & Harga)', pelapor, 0, 0, 0, 0]);
   }
 
@@ -730,7 +818,6 @@ function saveStockTransactionV2_(ss, payload) {
     return { success: false, message: 'Stok ' + variant.label + ' di ' + from + ' tidak cukup. Tersedia: ' + available };
   }
 
-  // Hitung nilai finansial berdasarkan HPP & Harga Jual variasi (atau override harga jual saat Keluar)
   var hppSatuan = variant.hpp || 0;
   var hargaJualSatuan = 0;
   var totalOmzet = 0;
@@ -904,8 +991,8 @@ function createWoJahit_(ss, payload) {
   if (!items.length) return { success: false, message: 'Minimal harus ada 1 target item pada Work Order.' };
 
   var woId = 'WOJ-' + Utilities.getUuid().split('-')[0].toUpperCase();
-  var shWo = ss.getSheetByName(IBS.SHEET_WO_JAHIT);
-  var shItem = ss.getSheetByName(IBS.SHEET_WO_JAHIT_ITEM);
+  var shWo = ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT, IBS.HEADERS.WO_JAHIT);
+  var shItem = ensureSheetHeadersV2_(ss, IBS.SHEET_WO_JAHIT_ITEM, IBS.HEADERS.WO_JAHIT_ITEM);
   var now = new Date();
 
   shWo.appendRow([woId, nomorWo, 'DRAFT', timLabel, lokasiAsal, lokasiTujuan, tanggalTarget, catatan, pelapor, now]);
@@ -1088,7 +1175,7 @@ function submitQcReceipt_(ss, payload) {
   if (!reportId || !namaPenerima || !barcodeWip || !variantId || !lokasiTujuan) {
     return { success: false, message: 'Data laporan, petugas QC, variasi tujuan, dan lokasi wajib diisi.' };
   }
-  if (qtyTerima <= 0 || qtyLolos < 0 || qtyGagal < 0) {
+  if (qtyTerima <= 0 || qtyLolos < 0 || qtyGagal < 0 || qtyLolos > qtyTerima || qtyGagal > qtyTerima) {
     return { success: false, message: 'Kuantitas pemeriksaan QC tidak valid.' };
   }
   if (!isValidLocationV2_(ss, lokasiTujuan)) {
@@ -1145,7 +1232,6 @@ function submitQcReceipt_(ss, payload) {
       qtyTerima, qtyLolos, qtyGagal, alasanGagal, barcodeWip, variantId, lokasiTujuan, namaPenerima, now
     ]]);
 
-    // Cek akumulasi seluruh laporan APPROVED untuk WO ini; tutup sesi jika target tercapai
     var nomorWo = textV2_(rep.Nomor_WO);
     var woId = textV2_(rep.WO_ID);
     var woClosed = false;
@@ -1220,7 +1306,7 @@ function createOpnameSession_(ss, payload) {
   if (!isValidLocationV2_(ss, loc)) return { success: false, message: 'Lokasi tidak valid.' };
 
   var sessionId = 'OPN-' + Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyMMdd') + '-' + Math.floor(Math.random() * 9000 + 1000);
-  var sh = ss.getSheetByName(IBS.SHEET_OPNAME_SESI);
+  var sh = ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
   sh.appendRow([sessionId, name, loc, 'ACTIVE', pelapor, new Date(), '']);
   SpreadsheetApp.flush();
   return { success: true, message: 'Sesi opname berhasil dibuat.', data: { session_id: sessionId } };
@@ -1235,7 +1321,7 @@ function submitOpnameCount_(ss, payload) {
 
   if (!sessionId || !barcode || !variantId || !pelapor || isNaN(qty) || qty < 0) return { success: false, message: 'Data tidak lengkap atau tidak valid.' };
 
-  var shSesi = ss.getSheetByName(IBS.SHEET_OPNAME_SESI);
+  var shSesi = ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
   var sesiRows = readObjectsV2_(shSesi);
   var sesi = sesiRows.filter(function (r) { return textV2_(r.Session_ID) === sessionId && textV2_(r.Status) === 'ACTIVE'; })[0];
   if (!sesi) return { success: false, message: 'Sesi tidak ditemukan atau sudah selesai.' };
@@ -1247,7 +1333,7 @@ function submitOpnameCount_(ss, payload) {
   var stockRow = findStockRowV2_(shStock, variantId, textV2_(sesi.Lokasi));
   var snapshotQty = stockRow ? stockRow.qty : 0;
 
-  var shDetail = ss.getSheetByName(IBS.SHEET_OPNAME_DETAIL);
+  var shDetail = ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_DETAIL, IBS.HEADERS.OPNAME_DETAIL);
   var detailRows = readObjectsV2_(shDetail);
   var existing = detailRows.filter(function (r) { return textV2_(r.Session_ID) === sessionId && textV2_(r.ID_Variasi) === variantId; })[0];
 
@@ -1271,14 +1357,14 @@ function approveOpnameSession_(ss, payload) {
   var pelapor = textV2_(payload.nama_pelapor);
   if (!sessionId || !pelapor) return { success: false, message: 'Session ID dan pelapor wajib diisi.' };
 
-  var shSesi = ss.getSheetByName(IBS.SHEET_OPNAME_SESI);
+  var shSesi = ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_SESI, IBS.HEADERS.OPNAME_SESI);
   var sesiRows = readObjectsV2_(shSesi);
   var sesi = sesiRows.filter(function (r) { return textV2_(r.Session_ID) === sessionId; })[0];
   if (!sesi) return { success: false, message: 'Sesi tidak ditemukan.' };
   if (textV2_(sesi.Status) !== 'ACTIVE') return { success: false, message: 'Sesi sudah selesai.' };
 
   var loc = textV2_(sesi.Lokasi);
-  var shDetail = ss.getSheetByName(IBS.SHEET_OPNAME_DETAIL);
+  var shDetail = ensureSheetHeadersV2_(ss, IBS.SHEET_OPNAME_DETAIL, IBS.HEADERS.OPNAME_DETAIL);
   var detailRows = readObjectsV2_(shDetail);
   var counts = detailRows.filter(function (r) { return textV2_(r.Session_ID) === sessionId; });
 

@@ -12,33 +12,99 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Ina Warehouse">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Ina Basic Store · Warehouse V5.0</title>
+  <title>Ina Basic Store · Warehouse</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
-    * { -webkit-tap-highlight-color: transparent; }
-    body { overscroll-behavior-y: contain; }
-    #reader { border: 0 !important; }
-    #reader video { object-fit: cover; }
-    .screen-enter { animation: slideUp .18s ease-out both; }
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      overscroll-behavior-y: contain;
+    }
+
+    #reader {
+      border: 0 !important;
+    }
+
+    #reader video {
+      object-fit: cover;
+    }
+
+    .screen-enter {
+      animation: slideUp .18s ease-out both;
+    }
+
     @keyframes slideUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    .toast-item { animation: toastIn .2s ease-out both; }
+
+    .toast-item {
+      animation: toastIn .2s ease-out both;
+    }
+
     @keyframes toastIn {
-      from { opacity: 0; transform: translateY(-8px) scale(.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
-    .app-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
-    .input-field:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .12); }
-    .choice-btn { transition: border-color .12s ease, background .12s ease, transform .12s ease; }
-    .choice-btn:active { transform: scale(.98); }
-    .choice-btn.selected { border-color: #4f46e5; background: #eef2ff; color: #3730a3; }
-    .choice-btn:disabled { opacity: .45; cursor: not-allowed; }
-    .muted-scroll::-webkit-scrollbar { width: 4px; }
-    .muted-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-    .safe-bottom { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+
+    .app-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+    }
+
+    .choice-btn {
+      transition: border-color .12s ease, background .12s ease, transform .12s ease;
+    }
+
+    .choice-btn:active {
+      transform: scale(.98);
+    }
+
+    .choice-btn.selected {
+      border-color: #4f46e5;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .choice-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .muted-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .muted-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+
+    .safe-bottom {
+      padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    }
   </style>
 </head>
 
@@ -53,7 +119,7 @@
           </div>
           <div>
             <p class="text-[10px] font-semibold uppercase tracking-[.18em] text-slate-400">Ina Basic Store</p>
-            <h1 class="text-base font-bold leading-tight">Warehouse Manager V5</h1>
+            <h1 class="text-base font-bold leading-tight">Warehouse Manager</h1>
           </div>
         </div>
         <button id="btn-install"
@@ -68,25 +134,17 @@
     <main class="flex-1 px-4 py-5 safe-bottom">
       <!-- HOME -->
       <section id="screen-home" class="screen-enter">
-        <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Aktivitas</h2>
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Aktivitas Gudang</h2>
           <span id="menu-count-badge"
-            class="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500">8 MENU</span>
+            class="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500">13 MENU</span>
         </div>
         <div id="activity-list" class="grid grid-cols-2 gap-3"></div>
-        <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-          <div class="flex items-start gap-3">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><svg
-                class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 8v4l3 2" />
-                <circle cx="12" cy="12" r="9" />
-              </svg></span>
-            <div>
-              <p class="text-sm font-semibold">HPP & Profit Otomatis Aktif</p>
-              <p class="mt-1 text-xs leading-relaxed text-slate-500">Setiap variasi memiliki HPP dan Harga Jual sendiri. Transaksi keluar otomatis menghitung omzet & margin keuntungan.</p>
-            </div>
-          </div>
+
+        <div class="mt-6 mb-4 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Produksi, QC & Keuangan HPP</h2>
         </div>
+        <div id="activity-list-produksi" class="grid grid-cols-2 gap-3"></div>
       </section>
 
       <!-- OPNAME SESSIONS -->
@@ -112,18 +170,21 @@
           <h3 class="font-bold text-sm mb-3">Buat Sesi Opname Baru</h3>
           <div class="space-y-3">
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Sesi</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama
+                Sesi</label>
               <input id="new-session-name"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Contoh: Opname Rak Utama Nov 2026">
+                placeholder="Contoh: Opname Rak A Nov 2026">
             </div>
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Lokasi Fisik</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Lokasi
+                Fisik</label>
               <select id="new-session-location"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white"></select>
             </div>
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pembuat / Admin</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pembuat /
+                Admin</label>
               <input id="new-session-admin"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 placeholder="Nama Anda...">
@@ -142,7 +203,8 @@
           <p id="approve-session-desc" class="text-xs text-slate-500 mb-3"></p>
           <div class="space-y-3">
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin / Penyetuju</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin /
+                Penyetuju</label>
               <input id="approve-session-admin"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 placeholder="Ketik nama penyetuju...">
@@ -151,7 +213,8 @@
               <button id="btn-cancel-approve" type="button"
                 class="flex-1 rounded-xl bg-slate-100 px-3 py-2.5 text-sm font-semibold text-slate-600">Batal</button>
               <button id="btn-confirm-approve" type="button"
-                class="flex-1 rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white">Konfirmasi Setujui</button>
+                class="flex-1 rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white">Konfirmasi
+                Setujui</button>
             </div>
           </div>
         </div>
@@ -208,7 +271,7 @@
             </svg>Ketik kode secara manual</button>
           <form id="manual-form" class="mt-3 hidden gap-2"><input id="manual-barcode"
               class="input-field min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-3 text-sm"
-              placeholder="Contoh: A-R01" autocomplete="off"><button
+              placeholder="Masukkan barcode..." autocomplete="off"><button
               class="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">Cari</button></form>
         </div>
       </section>
@@ -243,7 +306,8 @@
                 class="hidden rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">AKTIF</span>
             </div>
             <div id="product-fields" class="mt-4 hidden border-t border-slate-100 pt-3">
-              <label class="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama produk induk</label>
+              <label class="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama produk
+                induk</label>
               <input id="product-name" class="input-field w-full rounded-xl border border-slate-200 px-3 py-3 text-sm"
                 placeholder="Contoh: Kaos Polos">
               <label class="mt-3 flex items-center gap-2 text-sm text-slate-700"><input id="product-active"
@@ -251,31 +315,6 @@
             </div>
           </div>
 
-          <!-- Default HPP & Harga Jual saat Produk Baru / Tambah Variasi -->
-          <div id="default-pricing-card" class="hidden rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Standar Harga & Margin</p>
-                <h3 class="text-sm font-bold text-slate-800">Set HPP & Harga Jual Awal</h3>
-              </div>
-              <span id="default-margin-badge" class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">Profit: Rp 0</span>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">HPP / Pcs (Rp)</label>
-                <input id="default-hpp-input" type="number" min="0" step="100" placeholder="0"
-                  class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-800">
-              </div>
-              <div>
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Harga Jual (Rp)</label>
-                <input id="default-hj-input" type="number" min="0" step="100" placeholder="0"
-                  class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold text-emerald-700">
-              </div>
-            </div>
-            <p class="text-[11px] text-slate-400">Nilai ini diterapkan ke variasi baru dan dapat diubah per variasi kapan saja di menu Harga & HPP.</p>
-          </div>
-
-          <!-- Transaction variant picker -->
           <div id="variant-select-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="mb-3">
               <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih variasi barang</p>
@@ -288,16 +327,14 @@
               <p class="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">Variasi terpilih</p>
               <p id="variant-selected-label" class="mt-1 font-bold"></p>
               <p id="variant-stock-summary" class="mt-1 text-xs text-indigo-700"></p>
-              <p id="variant-price-summary" class="mt-1.5 border-t border-indigo-200/70 pt-1.5 text-xs font-semibold text-emerald-800"></p>
             </div>
           </div>
 
-          <!-- Variant management -->
           <div id="variant-manage-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Daftar variasi</p>
-                <h3 class="mt-1 text-sm font-bold">Kelola kombinasi & harga</h3>
+                <h3 class="mt-1 text-sm font-bold">Kelola kombinasi</h3>
               </div><span id="variant-count"
                 class="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500"></span>
             </div>
@@ -307,13 +344,13 @@
               Tambah kombinasi variasi</button>
           </div>
 
-          <!-- Dynamic attribute builder -->
           <div id="attribute-builder-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="flex items-start justify-between gap-2">
               <div>
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Atribut produk</p>
                 <h3 class="mt-1 text-sm font-bold">Atur pilihan variasi</h3>
-                <p class="mt-1 text-xs leading-relaxed text-slate-500">Tambahkan atribut sesuai produk. Nilai tiap atribut dipisahkan koma.</p>
+                <p class="mt-1 text-xs leading-relaxed text-slate-500">Tambahkan atribut sesuai produk. Nilai tiap
+                  atribut dipisahkan koma.</p>
               </div><span class="rounded-lg bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700">DINAMIS</span>
             </div>
             <label class="mt-3 flex items-center gap-2 text-xs text-slate-600"><input id="simple-product"
@@ -334,7 +371,6 @@
             </div>
           </div>
 
-          <!-- Location selectors -->
           <div id="location-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div id="location-from-wrap" class="hidden">
               <p id="location-from-label"
@@ -348,17 +384,6 @@
             </div>
           </div>
 
-          <!-- Harga Jual Override saat Barang Keluar -->
-          <div id="outbound-price-card" class="hidden rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
-            <div class="flex items-center justify-between mb-1">
-              <label class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Harga Jual Satuan (Rp)</label>
-              <span id="outbound-profit-preview" class="text-[11px] font-bold text-emerald-700">Est. Profit: Rp 0</span>
-            </div>
-            <input id="outbound-price-input" type="number" min="0" step="100" placeholder="0"
-              class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-base font-bold text-slate-800">
-            <p class="mt-1 text-[11px] text-slate-400">Otomatis terisi dari Harga Jual variasi. Ubah jika transaksi ini menggunakan harga promo/khusus.</p>
-          </div>
-
           <div id="qty-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <label id="qty-label"
               class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Kuantitas</label>
@@ -367,10 +392,10 @@
             <p id="qty-hint" class="mt-1 text-xs text-slate-400"></p>
           </div>
 
-          <!-- Input Pelapor -->
           <div id="reporter-card" class="hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
             <label id="reporter-label"
-              class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pelapor / Karyawan</label>
+              class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pelapor /
+              Karyawan</label>
             <input id="reporter-input" type="text" placeholder="Ketik nama Anda..." autocomplete="name"
               class="input-field w-full rounded-xl border border-slate-200 px-3 py-3 text-sm font-medium text-slate-800 outline-none">
           </div>
@@ -382,48 +407,8 @@
               <path d="m5 12 4 4L19 6" />
             </svg></button>
           <button id="btn-cancel-add-variants" type="button"
-            class="hidden w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600">Batal tambah variasi</button>
-        </form>
-      </section>
-
-      <!-- HARGA & HPP PER VARIASI (NEW V5.0) -->
-      <section id="screen-harga" class="hidden">
-        <div class="mb-4 flex items-center gap-3">
-          <button id="btn-back-harga"
-            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"
-            aria-label="Kembali"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2.5">
-              <path d="m15 18-6-6 6-6" />
-            </svg></button>
-          <div class="min-w-0 flex-1">
-            <h2 id="harga-product-title" class="text-base font-bold truncate">Atur HPP & Harga Jual</h2>
-            <p id="harga-product-barcode" class="text-xs font-mono text-slate-400"></p>
-          </div>
-        </div>
-
-        <form id="form-harga" class="space-y-3">
-          <div class="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-2">Terapkan Massal ke Semua Variasi Produk Ini</p>
-            <div class="grid grid-cols-2 gap-2 mb-2">
-              <input id="bulk-hpp" type="number" min="0" step="100" placeholder="HPP Massal (Rp)"
-                class="input-field rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold">
-              <input id="bulk-hj" type="number" min="0" step="100" placeholder="Harga Jual Massal (Rp)"
-                class="input-field rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold">
-            </div>
-            <button type="button" id="btn-apply-bulk-price"
-              class="w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-sm">Isi Otomatis ke Semua Variasi di Bawah</button>
-          </div>
-
-          <div id="harga-variant-list" class="space-y-2.5"></div>
-
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <label class="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin / Pelapor</label>
-            <input id="harga-pelapor" type="text" placeholder="Ketik nama Anda..."
-              class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-800" required>
-          </div>
-
-          <button id="btn-submit-harga" type="submit"
-            class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/20">Simpan Semua HPP & Harga Jual</button>
+            class="hidden w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600">Batal
+            tambah variasi</button>
         </form>
       </section>
 
@@ -444,29 +429,34 @@
         <form id="form-wo-jahit" class="space-y-4">
           <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tim Penjahit / Vendor</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tim Penjahit /
+                Vendor</label>
               <input id="wo-tim" class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                 placeholder="Nama tim/vendor..." required>
             </div>
             <div class="flex gap-3">
               <div class="flex-1">
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lokasi Asal</label>
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lokasi Asal
+                  Bahan</label>
                 <select id="wo-lokasi-asal"
                   class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white"></select>
               </div>
               <div class="flex-1">
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lokasi Tujuan</label>
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lokasi
+                  Tujuan (WIP)</label>
                 <select id="wo-lokasi-tujuan"
                   class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white"></select>
               </div>
             </div>
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Target Selesai</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Target
+                Selesai</label>
               <input id="wo-target-date" type="date"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm">
             </div>
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan Tambahan</label>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan
+                Tambahan</label>
               <textarea id="wo-catatan" rows="2"
                 class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                 placeholder="Instruksi khusus..."></textarea>
@@ -475,7 +465,7 @@
 
           <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div class="mb-3 flex justify-between items-center">
-              <h3 class="text-sm font-bold">Target Produksi</h3>
+              <h3 class="text-sm font-bold">Target Produksi (WIP)</h3>
             </div>
             <div id="wo-item-list"></div>
             <button type="button" id="btn-add-wo-item"
@@ -484,142 +474,216 @@
           </div>
 
           <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mb-3">
-            <label class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pembuat WO (Admin)</label>
+            <label class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Pembuat WO
+              (Admin)</label>
             <input id="wo-pelapor" type="text" placeholder="Ketik nama Anda..." autocomplete="name"
               class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-800 outline-none"
               required>
           </div>
 
           <button id="btn-submit-wo" type="submit"
-            class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/20">Buat Work Order</button>
+            class="flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/20">Buat
+            Work Order</button>
         </form>
       </section>
-      <!-- TERIMA & QC HASIL JAHITAN -->
-      <section id="screen-qc-jahit" class="hidden">
+
+      <!-- TERIMA & QC -->
+      <section id="screen-qc" class="hidden">
         <div class="mb-4 flex items-center gap-3">
           <button id="btn-back-qc"
-            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"
-            aria-label="Kembali"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2.5">
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="m15 18-6-6 6-6" />
             </svg></button>
           <div class="min-w-0 flex-1">
             <h2 class="text-base font-bold">Terima & QC</h2>
-            <p class="text-xs text-slate-400">Verifikasi setoran jahit & masuk stok</p>
+            <p class="text-xs text-slate-400">Verifikasi laporan penjahit</p>
           </div>
-          <button id="btn-refresh-qc" type="button"
-            class="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-cyan-700 shadow-sm ring-1 ring-slate-200 active:scale-95">Muat ulang</button>
         </div>
-
-        <!-- Daftar Laporan PENDING -->
-        <div class="mb-3 flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Laporan Penjahit (PENDING)</h3>
-          <span id="qc-pending-badge"
-            class="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">0 PENDING</span>
+        <div id="qc-list-wrap" class="space-y-3">
+          <p class="text-center text-xs text-slate-500 py-4" id="qc-loading">Memuat antrean QC...</p>
         </div>
-        <div id="qc-pending-list" class="space-y-2.5"></div>
-
-        <!-- Form Proses QC & Pemilih Variasi Produk Tujuan -->
-        <form id="form-qc-jahit" class="hidden mt-5 space-y-3" novalidate>
-          <div class="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 shadow-sm">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <p class="text-[10px] font-bold uppercase tracking-wider text-cyan-700">Laporan Dipilih</p>
-                <h4 id="qc-selected-wo" class="mt-0.5 text-sm font-bold text-slate-900"></h4>
-                <p id="qc-selected-meta" class="mt-0.5 text-xs text-slate-600"></p>
-              </div>
-              <button type="button" id="btn-cancel-qc-select"
-                class="rounded-lg bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">Tutup</button>
-            </div>
-            <div id="qc-wo-items-hint" class="mt-2 rounded-xl bg-white/80 px-3 py-2 text-[11px] text-slate-600"></div>
+        <form id="form-qc" class="space-y-4 hidden mt-4">
+          <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-emerald-600 uppercase">Memproses Laporan</p>
+            <p id="qc-rep-id" class="font-bold text-sm text-emerald-900"></p>
+            <p id="qc-wo-id" class="text-xs text-emerald-700"></p>
           </div>
-
-          <!-- Hasil Pemeriksaan Fisik QC -->
           <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-            <div>
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pemeriksaan Fisik</p>
-              <h4 class="mt-0.5 text-sm font-bold text-slate-800">Hasil Quality Control (QC)</h4>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-              <div>
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Total Terima</label>
-                <input id="qc-qty-terima" type="number" min="0" step="1"
-                  class="input-field w-full rounded-xl border border-slate-200 px-2.5 py-2.5 text-center text-base font-bold text-slate-800" required>
-              </div>
-              <div>
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Lolos QC</label>
-                <input id="qc-qty-lolos" type="number" min="0" step="1"
-                  class="input-field w-full rounded-xl border border-emerald-200 bg-emerald-50/60 px-2.5 py-2.5 text-center text-base font-bold text-emerald-800" required>
-              </div>
-              <div>
-                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-rose-700">Gagal / Reject</label>
-                <input id="qc-qty-gagal" type="number" min="0" step="1"
-                  class="input-field w-full rounded-xl border border-rose-200 bg-rose-50/60 px-2.5 py-2.5 text-center text-base font-bold text-rose-800" required>
-              </div>
+            <button type="button" id="btn-scan-wip"
+              class="w-full rounded-xl bg-slate-800 p-3 text-sm font-bold text-white shadow-sm flex items-center justify-center gap-2">
+              Scan Barcode Produk WIP
+            </button>
+            <div id="qc-wip-detail" class="hidden bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <p id="qc-wip-prod-name" class="text-xs font-bold text-slate-800 mb-1"></p>
+              <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Pilih Variasi Masuk Stok</p>
+              <div id="qc-wip-variants" class="space-y-2"></div>
             </div>
             <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan / Alasan Gagal (Opsional)</label>
-              <input id="qc-alasan-gagal" type="text"
-                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs"
-                placeholder="Contoh: Jahitan lepas 2 pcs, lainnya oke">
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilih Tarif
+                Jahit</label>
+              <select id="qc-tarif" class="input-field w-full rounded-xl border border-slate-200 p-2.5 text-sm bg-white"
+                required></select>
             </div>
-          </div>
-
-          <!-- Pemilih Produk & Variasi Tujuan -->
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div class="flex gap-3 mt-3">
+              <div class="flex-1">
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Lolos
+                  (Masuk Stok)</label>
+                <input id="qc-lolos" type="number" min="0"
+                  class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold" required>
+              </div>
+              <div class="flex-1">
+                <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-rose-600">Gagal
+                  (Reject)</label>
+                <input id="qc-gagal" type="number" min="0"
+                  class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold" required>
+              </div>
+            </div>
             <div>
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Tujuan Stok Masuk</p>
-              <h4 class="mt-0.5 text-sm font-bold text-slate-800">Pilih Produk & Variasi Tujuan</h4>
-              <p class="mt-0.5 text-xs text-slate-400">Scan atau ketik barcode produk induk, lalu pilih variasi warna/ukuran.</p>
-            </div>
-
-            <div class="flex gap-2">
-              <input id="qc-barcode-input" type="text"
-                class="input-field min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono"
-                placeholder="Barcode produk induk..." autocomplete="off">
-              <button type="button" id="btn-qc-scan-toggle"
-                class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700">Scan</button>
-              <button type="button" id="btn-qc-cari-produk"
-                class="rounded-xl bg-slate-900 px-3.5 py-2.5 text-xs font-semibold text-white">Cari</button>
-            </div>
-
-            <div id="qc-scanner-wrap" class="hidden overflow-hidden rounded-xl bg-black">
-              <div id="qc-reader" class="min-h-[220px] w-full"></div>
-            </div>
-
-            <div id="qc-product-box" class="hidden border-t border-slate-100 pt-3 space-y-3">
-              <div>
-                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Produk Induk</p>
-                <p id="qc-product-name" class="text-sm font-bold text-slate-800"></p>
-              </div>
-              <div id="qc-variant-selectors" class="space-y-3"></div>
-              <div id="qc-variant-summary" class="hidden rounded-xl bg-indigo-50 px-3 py-2.5 text-xs text-indigo-900">
-                <p class="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">Variasi Tujuan Terpilih</p>
-                <p id="qc-variant-label" class="mt-0.5 font-bold"></p>
-                <p id="qc-variant-stock" class="mt-0.5 text-[11px] text-indigo-700"></p>
-              </div>
-            </div>
-
-            <div class="border-t border-slate-100 pt-3">
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lokasi Rak Tujuan</label>
-              <select id="qc-lokasi-tujuan"
-                class="input-field w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium"></select>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin
+                QC</label>
+              <input id="qc-nama" class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm"
+                placeholder="Nama Anda" required>
             </div>
           </div>
-
-          <!-- Petugas QC -->
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <label class="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Petugas QC / Penerima</label>
-            <input id="qc-nama-penerima" type="text" autocomplete="name"
-              class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-800"
-              placeholder="Ketik nama petugas QC..." required>
-          </div>
-
           <button id="btn-submit-qc" type="submit"
-            class="flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-600 px-4 py-4 text-sm font-bold text-white shadow-lg shadow-cyan-500/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none">
-            <span>Simpan Hasil QC & Tambah Stok</span>
-          </button>
+            class="w-full rounded-2xl bg-emerald-600 p-4 text-sm font-bold text-white shadow-lg">Simpan & Hitung
+            Upah</button>
         </form>
+      </section>
+
+      <!-- MASTER TARIF -->
+      <section id="screen-tarif" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-tarif"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Master Tarif</h2>
+            <p class="text-xs text-slate-400">Atur standar upah per potong</p>
+          </div>
+        </div>
+        <form id="form-tarif" class="space-y-4">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Kode Model
+                (WIP)</label>
+              <input id="tarif-kode" class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm"
+                placeholder="Cth: POLOS-30S" required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Deskripsi
+                Model</label>
+              <input id="tarif-desc" class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm"
+                placeholder="Kaos Polos Cotton 30s" required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-indigo-600">Upah per Pcs
+                (Rp)</label>
+              <input id="tarif-upah" type="number" min="1"
+                class="input-field w-full rounded-xl border border-slate-200 p-3 text-sm font-bold text-indigo-700"
+                placeholder="3500" required>
+            </div>
+          </div>
+          <button id="btn-submit-tarif" type="submit"
+            class="w-full rounded-2xl bg-indigo-600 p-4 text-sm font-bold text-white shadow-lg">Simpan Tarif</button>
+        </form>
+      </section>
+
+      <!-- REKAP UPAH -->
+      <section id="screen-upah" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-upah"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Rekap Upah</h2>
+            <p class="text-xs text-slate-400">Tagihan Penjahit & Slip Gaji</p>
+          </div>
+        </div>
+        <div id="upah-loading" class="text-center text-xs text-slate-500 py-4">Memuat data tagihan...</div>
+        <div id="upah-list-wrap" class="space-y-4"></div>
+
+        <!-- Modal Form Konfirmasi Pelunasan (Menggantikan window.prompt) -->
+        <div id="pay-slip-modal" class="hidden mt-4 rounded-2xl border border-violet-300 bg-white p-4 shadow-md">
+          <h3 class="text-sm font-bold text-violet-900">Konfirmasi Pelunasan Slip Gaji</h3>
+          <p id="pay-slip-desc" class="mt-1 text-xs text-slate-500"></p>
+          <div class="mt-3 space-y-3">
+            <div>
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Nama Admin
+                Pembayar</label>
+              <input id="pay-slip-admin"
+                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                placeholder="Ketik nama admin...">
+            </div>
+            <div class="flex gap-2">
+              <button type="button" id="btn-cancel-payslip"
+                class="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">Batal</button>
+              <button type="button" id="btn-confirm-payslip"
+                class="flex-1 rounded-xl bg-violet-600 py-2.5 text-xs font-bold text-white">Konfirmasi Lunas</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ATUR HPP & HARGA JUAL PER VARIASI -->
+      <section id="screen-pricing" class="hidden">
+        <div class="mb-4 flex items-center gap-3">
+          <button id="btn-back-pricing"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200"><svg
+              class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m15 18-6-6 6-6" />
+            </svg></button>
+          <div class="min-w-0 flex-1">
+            <h2 class="text-base font-bold">Atur HPP & Harga</h2>
+            <p class="text-xs text-slate-400">Set modal & harga jual per variasi</p>
+          </div>
+        </div>
+
+        <!-- Scan or select product -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm mb-4">
+          <p class="text-xs text-slate-500 mb-3">Scan barcode produk untuk mengatur HPP & Harga Jual setiap variasi.</p>
+          <button type="button" id="btn-scan-pricing"
+            class="w-full rounded-xl bg-slate-800 p-3 text-sm font-bold text-white shadow-sm flex items-center justify-center gap-2">
+            📷 Scan Barcode Produk
+          </button>
+          <div id="pricing-product-info" class="hidden mt-3 bg-indigo-50 p-3 rounded-xl border border-indigo-200">
+            <p id="pricing-prod-name" class="text-sm font-bold text-indigo-900"></p>
+            <p id="pricing-prod-barcode" class="text-[10px] text-indigo-600 font-mono"></p>
+          </div>
+        </div>
+
+        <!-- Bulk pricing -->
+        <div id="pricing-bulk-card" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm mb-4">
+          <p class="text-[10px] font-bold uppercase text-amber-600 mb-2">Set HPP & Harga untuk SEMUA variasi sekaligus
+          </p>
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">HPP
+                (Rp)</label>
+              <input id="pricing-bulk-hpp" type="number" min="0"
+                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold"
+                placeholder="0">
+            </div>
+            <div class="flex-1">
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Harga Jual
+                (Rp)</label>
+              <input id="pricing-bulk-harga" type="number" min="0"
+                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold"
+                placeholder="0">
+            </div>
+          </div>
+          <button type="button" id="btn-apply-bulk-pricing"
+            class="mt-3 w-full rounded-xl bg-amber-600 p-3 text-sm font-bold text-white shadow-sm">Terapkan ke Semua
+            Variasi</button>
+        </div>
+
+        <!-- Per-variant pricing list -->
+        <div id="pricing-variant-list" class="hidden space-y-3"></div>
       </section>
     </main>
   </div>
@@ -628,54 +692,64 @@
     aria-live="polite"></div>
 
   <script>
-    const APP_CONFIG = { GAS_URL: 'https://script.google.com/macros/s/AKfycbxgR2xo-4FYI4e5KfLYBH-u7SGJ9CS8Xp19b8JRvENilP0Beon-XYYlAV5n7kTd6Rx6wA/exec' };
+    // ===== KONFIGURASI =====
+    const APP_CONFIG = { GAS_URL: 'https://script.google.com/macros/s/AKfycbyrTPpdKPyFI4EB5_vIPaq7oTyEQ7QLklzcY0f-BJi8KYATw0mq2NV107vwdjp4KDhc/exec' };
     const GAS_URL = APP_CONFIG.GAS_URL;
     function isGasConfigured() { return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(GAS_URL); }
 
     let LOCATIONS = [];
+    let TARIFS = [];
+    let activeQcReportId = null;
+    let pendingPayTeam = null;
 
-    const ACTIVITIES = {
+    const ACTIVITIES_GUDANG = {
       masuk: { label: 'Barang Masuk', value: 'Masuk', color: 'emerald', fields: ['to'], labelTo: 'Lokasi tujuan', qty: 'Stok masuk', min: 1 },
-      keluar: { label: 'Barang Keluar', value: 'Keluar', color: 'rose', fields: ['from'], labelFrom: 'Lokasi asal', qty: 'Stok keluar / terjual', min: 1 },
+      keluar: { label: 'Barang Keluar', value: 'Keluar', color: 'rose', fields: ['from'], labelFrom: 'Lokasi asal', qty: 'Stok keluar', min: 1 },
       mutasi: { label: 'Pindah Lokasi', value: 'Mutasi', color: 'sky', fields: ['from', 'to'], labelFrom: 'Lokasi asal', labelTo: 'Lokasi tujuan', qty: 'Jumlah dipindahkan', min: 1 },
       opname: { label: 'Stock Opname', value: 'Opname', color: 'amber', fields: ['to'], labelTo: 'Lokasi opname', qty: 'Jumlah fisik', min: 0 },
-      harga: { label: 'Harga & HPP', value: 'HargaHPP', color: 'teal', fields: [] },
-      wojahit: { label: 'WO Jahit', value: 'WoJahit', color: 'indigo', fields: [] },
-      qcjahit: { label: 'Terima & QC', value: 'QcJahit', color: 'cyan', fields: [] },
       kelola: { label: 'Kelola Data', value: 'Kelola', color: 'slate', fields: [] },
       produk: { label: 'Produk Baru', value: 'ProdukBaru', color: 'violet', fields: [] }
     };
+
+    const ACTIVITIES_PRODUKSI = {
+      pricing: { label: 'HPP & Harga', color: 'amber', desc: 'Set modal & harga jual' },
+      wojahit: { label: 'WO Jahit', color: 'rose', desc: 'Buat Work Order' },
+      qc: { label: 'Terima & QC', color: 'emerald', desc: 'Cek hasil & upah' },
+      tarif: { label: 'Master Tarif', color: 'indigo', desc: 'Upah per model' },
+      upah: { label: 'Rekap Upah', color: 'violet', desc: 'Slip gaji penjahit' }
+    };
+
+    const ALL_ACTIVITIES = Object.assign({}, ACTIVITIES_GUDANG, ACTIVITIES_PRODUKSI);
+
     const COLOR_STYLE = {
       emerald: ['bg-emerald-50', 'text-emerald-700', 'bg-emerald-500', 'border-emerald-100'],
       rose: ['bg-rose-50', 'text-rose-700', 'bg-rose-500', 'border-rose-100'],
       sky: ['bg-sky-50', 'text-sky-700', 'bg-sky-500', 'border-sky-100'],
       amber: ['bg-amber-50', 'text-amber-700', 'bg-amber-500', 'border-amber-100'],
-      teal: ['bg-teal-50', 'text-teal-700', 'bg-teal-600', 'border-teal-100'],
-      slate: ['bg-slate-50', 'text-slate-700', 'bg-slate-600', 'border-slate-200'],
+      slate: ['bg-slate-50', 'text-slate-700', 'bg-slate-700', 'border-slate-200'],
       violet: ['bg-violet-50', 'text-violet-700', 'bg-violet-500', 'border-violet-100'],
-      indigo: ['bg-indigo-50', 'text-indigo-700', 'bg-indigo-500', 'border-indigo-100'],
-      cyan: ['bg-cyan-50', 'text-cyan-700', 'bg-cyan-600', 'border-cyan-100']
+      indigo: ['bg-indigo-50', 'text-indigo-700', 'bg-indigo-500', 'border-indigo-100']
     };
+
     const ACTIVITY_ICONS = {
       masuk: '<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M5 18v3h14v-3"/>',
       keluar: '<path d="M12 21V9m-5 5 5-5 5 5"/><path d="M5 6V3h14v3"/>',
       mutasi: '<path d="M4 7h15l-3-3m4 13H5l3 3"/>',
       opname: '<path d="m5 12 4 4L19 6"/><circle cx="12" cy="12" r="9"/>',
-      harga: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
       kelola: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
       produk: '<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="9"/>',
-      wojahit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
-      qcjahit: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'
+      pricing: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+      wojahit: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+      qc: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+      tarif: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+      upah: '<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>'
     };
 
     const $ = id => document.getElementById(id);
-    const fmtRp = n => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
-
     const state = {
       key: null, barcode: '', product: null, selectedAttributes: {}, selectedVariant: null,
       locationFrom: '', locationTo: '', trxId: null, scanner: null, scannerRunning: false, scanLocked: false,
-      formMode: '', matrix: [], addVariantsMode: false,
-      opnameSession: null, pendingApproveSession: null
+      formMode: '', matrix: [], addVariantsMode: false, opnameSession: null, pendingApproveSession: null
     };
 
     function toast(message, type = 'success') {
@@ -685,11 +759,11 @@
       mark.className = `flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${type === 'success' ? 'bg-emerald-500' : 'bg-rose-400'}`;
       mark.textContent = type === 'success' ? '✓' : '×';
       const text = document.createElement('span'); text.className = 'flex-1'; text.textContent = message;
-      el.append(mark, text); $('toast-root').appendChild(el); setTimeout(() => el.remove(), 3500);
+      el.append(mark, text); $('toast-root').appendChild(el); setTimeout(() => el.remove(), 3800);
     }
 
     async function apiPost(payload) {
-      if (!isGasConfigured()) throw new Error('URL Apps Script belum diatur. Isi APP_CONFIG.GAS_URL di index.html.');
+      if (!isGasConfigured()) throw new Error('URL Apps Script belum diatur.');
       const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
       const json = await response.json();
       if (!response.ok) throw new Error('Server HTTP ' + response.status);
@@ -702,53 +776,71 @@
         if (res.success && res.data && Array.isArray(res.data.locations) && res.data.locations.length > 0) {
           LOCATIONS = res.data.locations;
         }
-      } catch (e) { console.warn('Gagal memuat lokasi dinamis:', e); }
+      } catch (e) { console.warn('Gagal memuat lokasi:', e); }
       if (LOCATIONS.length === 0) LOCATIONS = [{ value: 'Rak Utama', label: 'Rak Utama', kind: 'warehouse' }];
     }
 
     function renderActivities() {
-      $('menu-count-badge').textContent = Object.keys(ACTIVITIES).length + ' MENU';
-      Object.entries(ACTIVITIES).forEach(([key, activity]) => {
+      const totalMenu = Object.keys(ACTIVITIES_GUDANG).length + Object.keys(ACTIVITIES_PRODUKSI).length;
+      $('menu-count-badge').textContent = totalMenu + ' MENU';
+
+      Object.entries(ACTIVITIES_GUDANG).forEach(([key, activity]) => {
         const style = COLOR_STYLE[activity.color];
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `flex ${key === 'kelola' || key === 'produk' || key === 'qcjahit' ? 'col-span-2 flex-row items-center' : 'flex-col'} gap-3 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
-        const icon = document.createElement('span'); icon.className = `flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white`;
-        icon.innerHTML = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>`;
-        const label = document.createElement('span'); label.className = `text-sm font-bold ${style[1]}`; label.textContent = activity.label;
-        const desc = document.createElement('span'); desc.className = `text-[11px] ${style[1]} opacity-70`;
-        desc.textContent = key === 'kelola' ? 'Ubah produk & status variasi'
-          : key === 'produk' ? 'Daftarkan barcode & HPP awal'
-          : key === 'harga' ? 'Set HPP, Harga Jual & Margin'
-          : key === 'wojahit' ? 'Buat WO produksi'
-          : key === 'qcjahit' ? 'Verifikasi hasil jahit & tambah stok'
-          : 'Scan dan catat stok';
-        const wrapper = document.createElement('span'); wrapper.className = 'flex flex-col gap-1'; wrapper.append(label, desc);
-        button.append(icon, wrapper);
+        button.className = `flex flex-col gap-2.5 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
+        button.innerHTML = `
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>
+          </span>
+          <span class="flex flex-col gap-0.5">
+            <span class="text-sm font-bold ${style[1]}">${activity.label}</span>
+            <span class="text-[11px] ${style[1]} opacity-70">${key === 'kelola' ? 'Ubah produk & variasi' : key === 'produk' ? 'Daftarkan barcode baru' : 'Scan & catat stok'}</span>
+          </span>`;
         button.addEventListener('click', () => {
           if (key === 'opname') openOpnameSessions();
-          else if (key === 'wojahit') openWoJahitForm();
-          else if (key === 'qcjahit') openQcJahitScreen();
           else startScan(key, true);
         });
         $('activity-list').appendChild(button);
       });
+
+      Object.entries(ACTIVITIES_PRODUKSI).forEach(([key, activity]) => {
+        const style = COLOR_STYLE[activity.color];
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `flex flex-col gap-2.5 rounded-2xl border ${style[3]} ${style[0]} p-4 text-left shadow-sm transition active:scale-[.98]`;
+        button.innerHTML = `
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${style[2]} text-white">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTIVITY_ICONS[key]}</svg>
+          </span>
+          <span class="flex flex-col gap-0.5">
+            <span class="text-sm font-bold ${style[1]}">${activity.label}</span>
+            <span class="text-[11px] ${style[1]} opacity-70">${activity.desc}</span>
+          </span>`;
+        button.addEventListener('click', () => {
+          if (key === 'pricing') openPricingScreen();
+          else if (key === 'wojahit') openWoJahitForm();
+          else openFinanceModul(key);
+        });
+        $('activity-list-produksi').appendChild(button);
+      });
     }
 
     function showScreen(screen, pushHistory = true) {
-      ['home', 'scan', 'form', 'opname-sessions', 'harga', 'wo-jahit', 'qc-jahit'].forEach(name => {
-        const el = $('screen-' + name); const active = name === screen;
+      ['home', 'scan', 'form', 'opname-sessions', 'wo-jahit', 'pricing', 'qc', 'tarif', 'upah'].forEach(name => {
+        const el = $('screen-' + name);
+        if (!el) return;
+        const active = name === screen;
         el.classList.toggle('hidden', !active);
-        if (active) { el.classList.remove('screen-enter'); void el.offsetWidth; el.classList.add('screen-enter'); }
+        if (active && screen !== 'home' && screen !== 'scan') {
+          el.classList.remove('screen-enter'); void el.offsetWidth; el.classList.add('screen-enter');
+        }
       });
       const labels = {
-        home: 'Pilih aktivitas hari ini',
-        scan: 'Scan barcode produk',
-        form: 'Input data gudang',
-        'opname-sessions': 'Manajemen Sesi Opname',
-        harga: 'Pengaturan HPP & Harga Jual',
-        'wo-jahit': 'Work Order Jahit',
-        'qc-jahit': 'Terima & QC Hasil Jahitan'
+        home: 'Pilih aktivitas hari ini', scan: 'Scan barcode produk', form: 'Input data gudang',
+        'opname-sessions': 'Manajemen Sesi Opname', 'wo-jahit': 'Work Order Jahit',
+        pricing: 'Atur HPP & Harga Jual', qc: 'Terima & QC Hasil Jahit', tarif: 'Master Tarif Upah',
+        upah: 'Rekap Upah & Slip Gaji'
       };
       $('header-label').textContent = labels[screen] || '';
       if (pushHistory) history.pushState({ app: true, screen }, '', '#' + screen);
@@ -756,13 +848,12 @@
 
     async function navigateBack() {
       if (history.state && history.state.app && history.state.screen !== 'home') { history.back(); return; }
-      await stopScanner(); await stopQcScanner(); showScreen('home', false); history.replaceState({ app: true, screen: 'home' }, '', '#home');
+      await stopScanner(); showScreen('home', false); history.replaceState({ app: true, screen: 'home' }, '', '#home');
     }
 
     window.addEventListener('popstate', async (event) => {
       const target = event.state && event.state.app ? event.state.screen : 'home';
       await stopScanner();
-      await stopQcScanner();
       showScreen(target || 'home', false);
       if (target === 'scan' && state.key) startCamera();
     });
@@ -794,14 +885,11 @@
         const res = await apiPost({ action: 'GET_OPNAME_SESSIONS' });
         if (!res.success) throw new Error(res.message);
         renderOpnameSessions(res.data.sessions);
-      } catch (e) {
-        $('opname-session-list').innerHTML = `<p class="text-center text-xs text-rose-500 py-4">${e.message}</p>`;
-      }
+      } catch (e) { $('opname-session-list').innerHTML = `<p class="text-center text-xs text-rose-500 py-4">${e.message}</p>`; }
     }
 
     function renderOpnameSessions(sessions) {
-      const list = $('opname-session-list');
-      list.innerHTML = '';
+      const list = $('opname-session-list'); list.innerHTML = '';
       if (!sessions || sessions.length === 0) {
         list.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 p-6 text-center"><p class="text-sm font-medium text-slate-600">Belum ada sesi aktif</p><p class="mt-1 text-xs text-slate-400">Buat sesi baru untuk mulai menghitung stok.</p></div>';
         return;
@@ -819,10 +907,9 @@
             <span class="bg-amber-200 text-amber-800 text-[9px] font-bold px-2 py-1 rounded-full">Aktif</span>
           </div>
           <div class="flex gap-2">
-            <button data-scan class="flex-1 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-700">Mulai Hitung</button>
-            <button data-approve class="flex-1 rounded-xl bg-white border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-100">Setujui (Selesai)</button>
-          </div>
-        `;
+            <button data-scan class="flex-1 rounded-xl bg-amber-600 px-3 py-2 text-xs font-bold text-white shadow-sm">Mulai Hitung</button>
+            <button data-approve class="flex-1 rounded-xl bg-white border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700">Setujui (Selesai)</button>
+          </div>`;
         card.querySelector('[data-scan]').addEventListener('click', () => { state.opnameSession = sesi; startScan('opname', true); });
         card.querySelector('[data-approve]').addEventListener('click', () => {
           state.pendingApproveSession = sesi;
@@ -830,7 +917,6 @@
           $('approve-session-form').classList.remove('hidden');
           $('approve-session-desc').textContent = `Selesaikan sesi "${sesi.nama_sesi}" (${sesi.lokasi})? Saldo stok sistem akan diperbarui sesuai hasil hitung fisik.`;
           $('approve-session-admin').value = '';
-          $('approve-session-admin').focus();
         });
         list.appendChild(card);
       });
@@ -860,7 +946,7 @@
     });
     $('btn-cancel-session').addEventListener('click', () => $('create-session-form').classList.add('hidden'));
     $('btn-submit-session').addEventListener('click', async () => {
-      const name = $('new-session-name').value.trim(); const loc = $('new-session-location').value; const admin = $('new-session-admin').value.trim();
+      const name = $('new-session-name').value.trim(), loc = $('new-session-location').value, admin = $('new-session-admin').value.trim();
       if (!name || !loc || !admin) return toast('Semua kolom wajib diisi.', 'error');
       const btn = $('btn-submit-session'); btn.disabled = true; btn.textContent = 'Membuat...';
       try {
@@ -870,152 +956,37 @@
       } catch (e) { toast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Buat Sesi'; }
     });
 
-    // --- LOGIC HARGA & HPP PER VARIASI (NEW V5.0) ---
-    function openHargaHppForm(product) {
-      showScreen('harga', true);
-      $('harga-product-title').textContent = product.nama;
-      $('harga-product-barcode').textContent = 'Barcode: ' + product.barcode + ' (' + product.variants.length + ' variasi)';
-      $('bulk-hpp').value = '';
-      $('bulk-hj').value = '';
-      $('harga-pelapor').value = '';
-
-      const list = $('harga-variant-list');
-      list.innerHTML = '';
-      product.variants.forEach(v => {
-        const card = document.createElement('div');
-        card.className = 'harga-var-row rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm';
-        card.dataset.variantId = v.id;
-        card.innerHTML = `
-          <div class="flex items-center justify-between gap-2 mb-2.5">
-            <div>
-              <p class="text-xs font-bold text-slate-800">${v.label || 'Standar'}</p>
-              <p class="text-[10px] font-mono text-slate-400">${v.id}</p>
-            </div>
-            <span data-margin-pill class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">Profit: Rp 0 (0%)</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">HPP (Rp)</label>
-              <input data-hpp type="number" min="0" step="100" value="${v.hpp || 0}"
-                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-800">
-            </div>
-            <div>
-              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Harga Jual (Rp)</label>
-              <input data-hj type="number" min="0" step="100" value="${v.harga_jual || 0}"
-                class="input-field w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-emerald-700">
-            </div>
-          </div>
-        `;
-        const updateRowMargin = () => {
-          const hpp = Number(card.querySelector('[data-hpp]').value) || 0;
-          const hj = Number(card.querySelector('[data-hj]').value) || 0;
-          const profit = hj > 0 ? (hj - hpp) : 0;
-          const pct = hj > 0 ? ((profit / hj) * 100).toFixed(1) : '0.0';
-          const pill = card.querySelector('[data-margin-pill]');
-          pill.textContent = `Profit: ${fmtRp(profit)} (${pct}%)`;
-          pill.className = `rounded-full px-2.5 py-1 text-[10px] font-bold ${profit > 0 ? 'bg-emerald-50 text-emerald-700' : (profit < 0 ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600')}`;
-        };
-        card.querySelector('[data-hpp]').addEventListener('input', updateRowMargin);
-        card.querySelector('[data-hj]').addEventListener('input', updateRowMargin);
-        updateRowMargin();
-        list.appendChild(card);
-      });
-    }
-
-    $('btn-apply-bulk-price').addEventListener('click', () => {
-      const bulkHpp = $('bulk-hpp').value;
-      const bulkHj = $('bulk-hj').value;
-      if (bulkHpp === '' && bulkHj === '') return toast('Isi HPP Massal atau Harga Jual Massal terlebih dahulu.', 'error');
-      document.querySelectorAll('.harga-var-row').forEach(row => {
-        if (bulkHpp !== '') {
-          const inp = row.querySelector('[data-hpp]');
-          inp.value = bulkHpp;
-          inp.dispatchEvent(new Event('input'));
-        }
-        if (bulkHj !== '') {
-          const inp = row.querySelector('[data-hj]');
-          inp.value = bulkHj;
-          inp.dispatchEvent(new Event('input'));
-        }
-      });
-      toast('Nilai diterapkan ke semua variasi. Klik Simpan untuk memperbarui database.');
-    });
-
-    $('form-harga').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const pelapor = $('harga-pelapor').value.trim();
-      if (!pelapor) return toast('Nama admin/pelapor wajib diisi.', 'error');
-
-      const items = [...document.querySelectorAll('.harga-var-row')].map(row => ({
-        variant_id: row.dataset.variantId,
-        hpp: Number(row.querySelector('[data-hpp]').value) || 0,
-        harga_jual: Number(row.querySelector('[data-hj]').value) || 0
-      }));
-
-      const btn = $('btn-submit-harga'); btn.disabled = true; btn.textContent = 'Menyimpan...';
-      try {
-        const res = await apiPost({
-          action: 'UPDATE_VARIANT_PRICING',
-          transaction_id: newTransactionId(),
-          barcode: state.barcode,
-          nama_pelapor: pelapor,
-          items
-        });
-        if (!res.success) throw new Error(res.message);
-        toast(res.message);
-        await stopScanner();
-        history.back();
-      } catch (err) {
-        toast(err.message, 'error');
-      } finally {
-        btn.disabled = false; btn.textContent = 'Simpan Semua HPP & Harga Jual';
-      }
-    });
-
     // --- LOGIC WO JAHIT ---
     async function openWoJahitForm() {
-      state.key = 'wojahit';
-      showScreen('wo-jahit', true);
+      state.key = 'wojahit'; showScreen('wo-jahit', true);
       $('wo-tim').value = ''; $('wo-target-date').value = ''; $('wo-catatan').value = ''; $('wo-pelapor').value = '';
       await loadLocations();
-      const selAsal = $('wo-lokasi-asal'); const selTujuan = $('wo-lokasi-tujuan');
+      const selAsal = $('wo-lokasi-asal'), selTujuan = $('wo-lokasi-tujuan');
       selAsal.innerHTML = ''; selTujuan.innerHTML = '';
       LOCATIONS.forEach(l => {
         const optA = document.createElement('option'); optA.value = l.value; optA.textContent = l.label;
         const optB = document.createElement('option'); optB.value = l.value; optB.textContent = l.label;
         selAsal.appendChild(optA); selTujuan.appendChild(optB);
       });
-      $('wo-item-list').innerHTML = '';
-      addWoItemRow();
+      $('wo-item-list').innerHTML = ''; addWoItemRow();
     }
-
     function addWoItemRow() {
-      const list = $('wo-item-list');
-      const row = document.createElement('div');
+      const list = $('wo-item-list'), row = document.createElement('div');
       row.className = 'wo-item-row rounded-xl border border-slate-200 p-3 mb-2 bg-slate-50 relative';
       row.innerHTML = `
         <button type="button" class="absolute top-2 right-2 text-rose-500 font-bold text-xs" onclick="this.parentElement.remove()">X</button>
-        <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Model / Warna / Ukuran</label>
+        <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Model / Warna / Ukuran WIP</label>
         <input type="text" data-desc class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-2" placeholder="Cth: Kaos Polos Hitam XL">
         <div class="flex gap-2">
-          <div class="flex-1">
-            <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Qty Target</label>
-            <input type="number" data-qty class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="0">
-          </div>
-          <div class="flex-1">
-            <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan</label>
-            <input type="text" data-note class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="-">
-          </div>
-        </div>
-      `;
+          <div class="flex-1"><label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Qty Target</label><input type="number" data-qty class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="0"></div>
+          <div class="flex-1"><label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Catatan</label><input type="text" data-note class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="-"></div>
+        </div>`;
       list.appendChild(row);
     }
     $('btn-add-wo-item').addEventListener('click', addWoItemRow);
-
     $('form-wo-jahit').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const tim = $('wo-tim').value.trim(); const asal = $('wo-lokasi-asal').value; const tujuan = $('wo-lokasi-tujuan').value;
-      const tgl = $('wo-target-date').value; const catatan = $('wo-catatan').value.trim(); const pelapor = $('wo-pelapor').value.trim();
+      const tim = $('wo-tim').value.trim(), asal = $('wo-lokasi-asal').value, tujuan = $('wo-lokasi-tujuan').value, tgl = $('wo-target-date').value, catatan = $('wo-catatan').value.trim(), pelapor = $('wo-pelapor').value.trim();
       if (!tim || !pelapor) return toast('Tim Penjahit dan Nama Pembuat wajib diisi.', 'error');
       const items = [...document.querySelectorAll('.wo-item-row')].map(r => ({
         deskripsi: r.querySelector('[data-desc]').value.trim(),
@@ -1025,317 +996,246 @@
       if (items.length === 0) return toast('Minimal 1 item dengan deskripsi dan qty valid.', 'error');
       const btn = $('btn-submit-wo'); btn.disabled = true; btn.textContent = 'Memproses...';
       try {
-        const res = await apiPost({ action: 'CREATE_WO_JAHIT', tim_label: tim, lokasi_asal_bahan: asal, lokasi_tujuan: tujuan, tanggal_target: tgl, catatan: catatan, nama_pelapor: pelapor, items });
+        const res = await apiPost({ action: 'CREATE_WO_JAHIT', tim_label: tim, lokasi_asal_bahan: asal, lokasi_tujuan: tujuan, tanggal_target: tgl, catatan: catatan, nama_pelapor: pelapor, items: items });
         if (!res.success) throw new Error(res.message);
         toast('Work Order Jahit dibuat: ' + res.data.nomor_wo); navigateBack();
       } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Buat Work Order'; }
     });
 
-
-    // --- LOGIC TERIMA & QC HASIL JAHITAN ---
-    const qcState = {
-      reports: [],
-      selectedReport: null,
-      product: null,
-      selectedAttributes: {},
-      selectedVariant: null,
-      scanner: null,
-      scannerRunning: false
-    };
-
-    async function stopQcScanner() {
-      if (!qcState.scanner) return;
-      const cur = qcState.scanner;
-      qcState.scanner = null;
-      try { if (qcState.scannerRunning) await cur.stop(); } catch (e) { }
-      qcState.scannerRunning = false;
-      try { await cur.clear(); } catch (e) { }
-      $('qc-scanner-wrap').classList.add('hidden');
-    }
-
-    async function openQcJahitScreen() {
-      state.key = 'qcjahit';
-      qcState.selectedReport = null;
-      qcState.product = null;
-      qcState.selectedAttributes = {};
-      qcState.selectedVariant = null;
-      await stopQcScanner();
-      showScreen('qc-jahit', true);
-      $('form-qc-jahit').classList.add('hidden');
-      await loadLocations();
-      const selLoc = $('qc-lokasi-tujuan');
-      selLoc.innerHTML = '';
-      LOCATIONS.forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l.value;
-        opt.textContent = l.label;
-        selLoc.appendChild(opt);
-      });
-      await loadPendingQcReports();
-    }
-
-    async function loadPendingQcReports() {
-      const list = $('qc-pending-list');
-      const badge = $('qc-pending-badge');
-      list.innerHTML = '<p class="py-4 text-center text-xs text-slate-400">Memuat laporan PENDING...</p>';
-      try {
-        const res = await apiPost({ action: 'GET_PENDING_QC' });
-        if (!res.success) throw new Error(res.message);
-        const reports = (res.data && res.data.reports) || [];
-        qcState.reports = reports;
-        badge.textContent = `${reports.length} PENDING`;
-        renderPendingQcList(reports);
-      } catch (e) {
-        badge.textContent = 'ERROR';
-        list.innerHTML = `<div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700">${e.message}</div>`;
+    // --- LOGIC FINANCE, QC, TARIF, UPAH ---
+    async function openFinanceModul(key) {
+      state.key = key;
+      if (key === 'tarif') {
+        $('tarif-kode').value = ''; $('tarif-desc').value = ''; $('tarif-upah').value = '';
+        showScreen('tarif', true);
+      } else if (key === 'qc') {
+        showScreen('qc', true);
+        $('qc-list-wrap').classList.remove('hidden'); $('form-qc').classList.add('hidden');
+        $('qc-loading').textContent = 'Memuat antrean QC...';
+        try {
+          const res = await apiPost({ action: 'GET_DATA_FOR_QC' });
+          if (res.success) { TARIFS = res.data.tarifs; renderQcList(res.data.pending_reports); }
+          else throw new Error(res.message);
+        } catch (e) { $('qc-loading').textContent = e.message; }
+      } else if (key === 'upah') {
+        showScreen('upah', true);
+        $('pay-slip-modal').classList.add('hidden');
+        $('upah-list-wrap').innerHTML = ''; $('upah-loading').classList.remove('hidden');
+        try {
+          const res = await apiPost({ action: 'GET_UNPAID_UPAH' });
+          if (res.success) renderUpahList(res.data.unpaid);
+          else throw new Error(res.message);
+        } catch (e) { $('upah-loading').textContent = e.message; }
       }
     }
 
-    function renderPendingQcList(reports) {
-      const list = $('qc-pending-list');
-      list.innerHTML = '';
-      if (!reports.length) {
-        list.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center"><p class="text-sm font-semibold text-slate-600">Tidak ada laporan PENDING</p><p class="mt-1 text-xs text-slate-400">Semua setoran jahitan sudah diproses QC.</p></div>';
-        return;
-      }
-      reports.forEach(rep => {
+    function renderQcList(reports) {
+      const wrap = $('qc-list-wrap'); wrap.innerHTML = '';
+      if (!reports.length) return wrap.innerHTML = '<p class="text-center text-xs text-slate-500 py-4">Semua laporan jahitan sudah di-QC.</p>';
+      reports.forEach(r => {
         const card = document.createElement('div');
-        const isSelected = qcState.selectedReport && qcState.selectedReport.report_id === rep.report_id;
-        card.className = `rounded-2xl border p-4 shadow-sm transition ${isSelected ? 'border-cyan-500 bg-cyan-50/40' : 'border-slate-200 bg-white'}`;
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <span class="inline-block rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">PENDING</span>
-              <h4 class="mt-1 text-sm font-bold text-slate-800">${rep.nomor_wo || '-'} · ${rep.nama_penjahit || '-'}</h4>
-              <p class="mt-0.5 text-xs text-slate-500">${rep.tim_label ? 'Tim: ' + rep.tim_label + ' · ' : ''}Klaim: <strong class="text-emerald-700">${rep.qty_bagus || 0} bagus</strong> · <strong class="text-rose-600">${rep.qty_cacat || 0} cacat</strong></p>
-              ${rep.target_summary ? `<p class="mt-1 text-[11px] text-slate-400">Target WO: ${rep.target_summary}</p>` : ''}
-            </div>
-            <button type="button" data-select-qc class="shrink-0 rounded-xl bg-cyan-600 px-3 py-2 text-xs font-bold text-white shadow-sm active:scale-95">Proses QC</button>
-          </div>
-        `;
-        card.querySelector('[data-select-qc]').addEventListener('click', () => selectPendingQcReport(rep));
-        list.appendChild(card);
+        card.className = 'rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm cursor-pointer active:scale-95 transition';
+        card.innerHTML = `<div class="flex justify-between items-center"><div><p class="font-bold text-emerald-900 text-sm">${r.Report_ID}</p><p class="text-xs text-emerald-700">${r.WO_ID} · ${r.Nama_Penjahit} (${r.Tim_Penjahit})</p></div><div class="text-right"><p class="text-xs font-bold text-emerald-700">Bagus: ${r.Qty_Bagus}</p><p class="text-[10px] text-rose-600">Cacat: ${r.Qty_Cacat}</p></div></div>`;
+        card.onclick = () => openQcForm(r);
+        wrap.appendChild(card);
       });
     }
 
-    function selectPendingQcReport(rep) {
-      qcState.selectedReport = rep;
-      qcState.product = null;
-      qcState.selectedAttributes = {};
-      qcState.selectedVariant = null;
-      renderPendingQcList(qcState.reports);
-
-      const form = $('form-qc-jahit');
-      form.classList.remove('hidden');
-      $('qc-selected-wo').textContent = `${rep.nomor_wo || '-'} · Penjahit: ${rep.nama_penjahit || '-'}`;
-      $('qc-selected-meta').textContent = `ID Laporan: ${rep.report_id} · Klaim: ${rep.qty_bagus || 0} bagus, ${rep.qty_cacat || 0} cacat`;
-      $('qc-wo-items-hint').textContent = rep.target_summary ? `Detail Item WO: ${rep.target_summary}` : 'Pilih barcode & variasi produk tujuan untuk menambah stok hasil QC.';
-
-      const bagus = Number(rep.qty_bagus) || 0;
-      const cacat = Number(rep.qty_cacat) || 0;
-      $('qc-qty-terima').value = bagus + cacat;
-      $('qc-qty-lolos').value = bagus;
-      $('qc-qty-gagal').value = cacat;
-      $('qc-alasan-gagal').value = '';
-      $('qc-barcode-input').value = '';
-      $('qc-product-box').classList.add('hidden');
-      $('qc-variant-summary').classList.add('hidden');
-      if (rep.lokasi_tujuan && LOCATIONS.some(l => l.value === rep.lokasi_tujuan)) {
-        $('qc-lokasi-tujuan').value = rep.lokasi_tujuan;
-      }
-      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    async function lookupQcProduct(barcode) {
-      const code = (barcode || '').trim();
-      if (!code) return toast('Masukkan atau scan barcode produk tujuan.', 'error');
-      $('qc-barcode-input').value = code;
-      try {
-        const res = await apiPost({ action: 'GET_PRODUCT', barcode: code, include_inactive: false });
-        if (!res.success) return toast(res.message || 'Produk tidak ditemukan.', 'error');
-        qcState.product = res.data;
-        qcState.selectedAttributes = {};
-        qcState.selectedVariant = null;
-        $('qc-product-box').classList.remove('hidden');
-        $('qc-product-name').textContent = `${res.data.nama} (${res.data.barcode})`;
-        renderQcVariantSelector(res.data);
-      } catch (e) {
-        toast(e.message || 'Gagal memuat produk.', 'error');
-      }
-    }
-
-    function renderQcVariantSelector(product) {
-      const root = $('qc-variant-selectors');
-      root.innerHTML = '';
-      const activeVariants = (product.variants || []).filter(v => v.active);
-      const definitions = (product.attributes || []).filter(a => (a.values || []).length);
-      if (!activeVariants.length) {
-        root.innerHTML = '<p class="text-xs text-rose-600">Tidak ada variasi aktif pada produk ini.</p>';
-        return;
-      }
-      if (!definitions.length) {
-        qcState.selectedVariant = activeVariants[0];
-        applyQcSelectedVariant(activeVariants[0]);
-        return;
-      }
-      $('qc-variant-summary').classList.add('hidden');
-      definitions.forEach((definition, index) => {
-        const group = document.createElement('div');
-        const label = document.createElement('p');
-        label.className = 'mb-1.5 text-xs font-semibold text-slate-500';
-        label.textContent = 'Pilih ' + definition.name;
-        const options = document.createElement('div');
-        options.className = 'flex flex-wrap gap-2';
-
-        const selectedBefore = {};
-        definitions.slice(0, index).forEach(d => {
-          if (qcState.selectedAttributes[d.name]) selectedBefore[d.name] = qcState.selectedAttributes[d.name];
-        });
-        const eligible = activeVariants.filter(v => Object.keys(selectedBefore).every(k => v.attributes[k] === selectedBefore[k]));
-        const values = [];
-        eligible.forEach(v => {
-          const value = v.attributes[definition.name];
-          if (value !== undefined && !values.some(x => x.value === value)) {
-            values.push({ value, hex: (definition.values || []).find(x => x.value === value)?.hex || '' });
-          }
-        });
-
-        values.forEach(option => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'choice-btn flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold';
-          if (qcState.selectedAttributes[definition.name] === option.value) btn.classList.add('selected');
-          if (definition.type === 'color') {
-            const swatch = document.createElement('span');
-            swatch.className = 'h-3.5 w-3.5 rounded border border-slate-300';
-            swatch.style.backgroundColor = option.hex || '#cbd5e1';
-            btn.appendChild(swatch);
-          }
-          const txt = document.createElement('span');
-          txt.textContent = option.value;
-          btn.appendChild(txt);
-          btn.addEventListener('click', () => {
-            qcState.selectedAttributes[definition.name] = option.value;
-            definitions.slice(index + 1).forEach(d => delete qcState.selectedAttributes[d.name]);
-            resolveQcSelectedVariant();
-            renderQcVariantSelector(product);
-          });
-          options.appendChild(btn);
-        });
-
-        group.append(label, options);
-        root.appendChild(group);
+    function openQcForm(r) {
+      activeQcReportId = r.Report_ID;
+      $('qc-list-wrap').classList.add('hidden'); $('form-qc').classList.remove('hidden');
+      $('qc-rep-id').textContent = r.Report_ID; $('qc-wo-id').textContent = `${r.WO_ID} · Penjahit: ${r.Nama_Penjahit} (${r.Tim_Penjahit})`;
+      $('qc-lolos').value = r.Qty_Bagus; $('qc-gagal').value = r.Qty_Cacat; $('qc-nama').value = '';
+      const sel = $('qc-tarif'); sel.innerHTML = '<option value="">-- Pilih Tarif Upah --</option>';
+      TARIFS.forEach(t => {
+        const opt = document.createElement('option'); opt.value = t.ID_Tarif; opt.textContent = `${t.Kode_Model_WIP} - ${t.Deskripsi_Model} (Rp ${Number(t.Upah_Per_Pcs).toLocaleString('id-ID')})`; sel.appendChild(opt);
       });
-      resolveQcSelectedVariant();
+      state.selectedVariant = null; state.barcode = ''; $('qc-wip-detail').classList.add('hidden');
     }
 
-    function resolveQcSelectedVariant() {
-      const definitions = qcState.product.attributes || [];
-      const active = (qcState.product.variants || []).filter(v => v.active);
-      const complete = definitions.every(d => !!qcState.selectedAttributes[d.name]);
-      qcState.selectedVariant = complete ? active.find(v => definitions.every(d => v.attributes[d.name] === qcState.selectedAttributes[d.name])) || null : null;
-      if (qcState.selectedVariant) applyQcSelectedVariant(qcState.selectedVariant);
-      else $('qc-variant-summary').classList.add('hidden');
-    }
+    $('btn-scan-wip').onclick = () => { state.key = 'scan-qc'; showScreen('scan', false); startCamera(); };
 
-    function applyQcSelectedVariant(v) {
-      $('qc-variant-summary').classList.remove('hidden');
-      $('qc-variant-label').textContent = v.label || 'Standar';
-      $('qc-variant-stock').textContent = 'Stok saat ini: ' + stockSummary(v);
-    }
-
-    $('btn-back-qc').addEventListener('click', navigateBack);
-    $('btn-refresh-qc').addEventListener('click', loadPendingQcReports);
-    $('btn-cancel-qc-select').addEventListener('click', () => {
-      qcState.selectedReport = null;
-      $('form-qc-jahit').classList.add('hidden');
-      renderPendingQcList(qcState.reports);
-    });
-    $('btn-qc-cari-produk').addEventListener('click', () => lookupQcProduct($('qc-barcode-input').value));
-    $('qc-barcode-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); lookupQcProduct($('qc-barcode-input').value); }
-    });
-    $('btn-qc-scan-toggle').addEventListener('click', async () => {
-      if (qcState.scannerRunning) { await stopQcScanner(); return; }
-      if (!window.Html5Qrcode) return toast('Scanner kamera tidak tersedia.', 'error');
-      $('qc-scanner-wrap').classList.remove('hidden');
-      try {
-        const sc = new Html5Qrcode('qc-reader', { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8] });
-        qcState.scanner = sc;
-        await sc.start({ facingMode: 'environment' }, { fps: 12, qrbox: { width: 200, height: 200 } }, async decoded => {
-          playBeep();
-          await stopQcScanner();
-          await lookupQcProduct(decoded.trim());
-        }, () => { });
-        qcState.scannerRunning = true;
-      } catch (e) {
-        $('qc-scanner-wrap').classList.add('hidden');
-        toast('Kamera gagal dibuka. Ketik barcode secara manual.', 'error');
-      }
-    });
-
-    $('form-qc-jahit').addEventListener('submit', async (e) => {
+    $('form-qc').addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!qcState.selectedReport) return toast('Pilih laporan PENDING terlebih dahulu.', 'error');
-      if (!qcState.product || !qcState.selectedVariant) return toast('Pilih produk dan variasi tujuan terlebih dahulu.', 'error');
-
-      const qtyTerima = parseInt($('qc-qty-terima').value) || 0;
-      const qtyLolos = parseInt($('qc-qty-lolos').value) || 0;
-      const qtyGagal = parseInt($('qc-qty-gagal').value) || 0;
-      const alasanGagal = $('qc-alasan-gagal').value.trim();
-      const lokasiTujuan = $('qc-lokasi-tujuan').value;
-      const namaPenerima = $('qc-nama-penerima').value.trim();
-
-      if (qtyTerima <= 0) return toast('Total terima harus lebih dari 0.', 'error');
-      if (qtyLolos < 0 || qtyGagal < 0) return toast('Kuantitas QC tidak boleh negatif.', 'error');
-      if (!lokasiTujuan) return toast('Pilih lokasi rak tujuan.', 'error');
-      if (!namaPenerima) return toast('Nama petugas QC / penerima wajib diisi.', 'error');
-
-      const btn = $('btn-submit-qc');
-      btn.disabled = true;
-      btn.querySelector('span').textContent = 'Menyimpan QC...';
+      if (!state.selectedVariant) return toast('Harap scan produk WIP dan pilih variasi terlebih dahulu!', 'error');
+      const btn = $('btn-submit-qc'); btn.disabled = true; btn.textContent = 'Memproses...';
       try {
         const res = await apiPost({
           action: 'SUBMIT_QC_RECEIPT',
           transaction_id: newTransactionId(),
-          report_id: qcState.selectedReport.report_id,
-          wo_id: qcState.selectedReport.wo_id || '',
-          nomor_wo: qcState.selectedReport.nomor_wo || '',
-          nama_penerima: namaPenerima,
-          qty_terima: qtyTerima,
-          qty_lolos: qtyLolos,
-          qty_gagal: qtyGagal,
-          alasan_gagal: alasanGagal,
-          barcode_wip: qcState.product.barcode,
-          id_variasi_wip: qcState.selectedVariant.id,
-          lokasi_tujuan: lokasiTujuan
+          report_id: activeQcReportId,
+          tarif_id: $('qc-tarif').value,
+          variant_id: state.selectedVariant.id,
+          barcode: state.barcode,
+          qty_lolos: $('qc-lolos').value,
+          qty_gagal: $('qc-gagal').value,
+          nama_qc: $('qc-nama').value.trim()
         });
         if (!res.success) throw new Error(res.message);
-        toast(res.message || 'QC berhasil disimpan & stok diperbarui!');
-        qcState.selectedReport = null;
-        $('form-qc-jahit').classList.add('hidden');
-        await loadPendingQcReports();
-      } catch (err) {
-        toast(err.message || 'Gagal menyimpan hasil QC.', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.querySelector('span').textContent = 'Simpan Hasil QC & Tambah Stok';
-      }
+        toast(res.message); showScreen('home', false);
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Simpan & Hitung Upah'; }
     });
 
-    // --- SCANNER & FLOW ---
+    $('form-tarif').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = $('btn-submit-tarif'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const res = await apiPost({ action: 'CREATE_TARIF', kode_model: $('tarif-kode').value.trim(), deskripsi: $('tarif-desc').value.trim(), upah: $('tarif-upah').value });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message); navigateBack();
+      } catch (err) { toast(err.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Simpan Tarif'; }
+    });
+
+    function renderUpahList(list) {
+      $('upah-loading').classList.add('hidden');
+      const wrap = $('upah-list-wrap'); wrap.innerHTML = '';
+      if (!list.length) return wrap.innerHTML = '<p class="text-center text-xs text-slate-500 py-4">Tidak ada tagihan upah tertunda.</p>';
+      list.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-violet-200 bg-violet-50 p-4 shadow-sm';
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-3">
+            <div><p class="font-bold text-violet-900 text-sm">${item.tim}</p><p class="text-xs text-violet-700">${item.count} Laporan QC · ${item.total_qty} pcs</p></div>
+            <div class="text-right"><p class="text-[10px] font-bold text-violet-600 uppercase">Total Tagihan</p><p class="text-base font-bold text-violet-900">Rp ${item.total_upah.toLocaleString('id-ID')}</p></div>
+          </div>
+          <button type="button" class="w-full bg-violet-600 text-white font-bold rounded-xl py-3 text-sm shadow-sm btn-pay">Buat Slip & Lunasi</button>`;
+        card.querySelector('.btn-pay').onclick = () => {
+          pendingPayTeam = item;
+          $('pay-slip-desc').textContent = `Lunasi tagihan Tim "${item.tim}" sebesar Rp ${item.total_upah.toLocaleString('id-ID')} (${item.total_qty} pcs)?`;
+          $('pay-slip-admin').value = '';
+          $('pay-slip-modal').classList.remove('hidden');
+          $('pay-slip-admin').focus();
+        };
+        wrap.appendChild(card);
+      });
+    }
+
+    $('btn-cancel-payslip').onclick = () => { pendingPayTeam = null; $('pay-slip-modal').classList.add('hidden'); };
+    $('btn-confirm-payslip').onclick = async () => {
+      if (!pendingPayTeam) return;
+      const namaAdmin = $('pay-slip-admin').value.trim();
+      if (!namaAdmin) return toast('Nama admin pembayar wajib diisi.', 'error');
+      const btn = $('btn-confirm-payslip'); btn.disabled = true; btn.textContent = 'Memproses...';
+      try {
+        const res = await apiPost({ action: 'GENERATE_PAY_SLIP', tim_penjahit: pendingPayTeam.tim, nama_admin: namaAdmin });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message); pendingPayTeam = null; $('pay-slip-modal').classList.add('hidden'); openFinanceModul('upah');
+      } catch (e) { toast(e.message, 'error'); } finally { btn.disabled = false; btn.textContent = 'Konfirmasi Lunas'; }
+    };
+
+    // --- LOGIC PRICING (HPP & HARGA JUAL) ---
+    let pricingBarcode = '';
+    let pricingProduct = null;
+
+    async function openPricingScreen() {
+      state.key = 'pricing';
+      pricingBarcode = ''; pricingProduct = null;
+      showScreen('pricing', true);
+      $('pricing-product-info').classList.add('hidden');
+      $('pricing-bulk-card').classList.add('hidden');
+      $('pricing-variant-list').classList.add('hidden');
+      $('pricing-variant-list').innerHTML = '';
+    }
+
+    $('btn-scan-pricing').onclick = () => { state.key = 'scan-pricing'; showScreen('scan', false); startCamera(); };
+
+    async function loadPricingForProduct(barcode) {
+      pricingBarcode = barcode;
+      showScreen('pricing', false);
+      $('pricing-product-info').classList.remove('hidden');
+      $('pricing-bulk-card').classList.remove('hidden');
+      $('pricing-variant-list').classList.remove('hidden');
+      $('pricing-variant-list').innerHTML = '<p class="text-center text-xs text-slate-400 py-3">Memuat variasi...</p>';
+
+      try {
+        const res = await apiPost({ action: 'GET_PRODUCT', barcode, include_inactive: false });
+        if (!res.success) throw new Error(res.message);
+        pricingProduct = res.data;
+        $('pricing-prod-name').textContent = res.data.nama;
+        $('pricing-prod-barcode').textContent = res.data.barcode;
+        $('pricing-bulk-hpp').value = '';
+        $('pricing-bulk-harga').value = '';
+        renderPricingVariants(res.data.variants || []);
+      } catch (e) {
+        $('pricing-variant-list').innerHTML = `<p class="text-center text-xs text-rose-500 py-3">${e.message}</p>`;
+      }
+    }
+
+    function renderPricingVariants(variants) {
+      const wrap = $('pricing-variant-list'); wrap.innerHTML = '';
+      if (!variants.length) { wrap.innerHTML = '<p class="text-center text-xs text-slate-500 py-3">Tidak ada variasi aktif.</p>'; return; }
+      variants.forEach(v => {
+        const card = document.createElement('div');
+        card.className = 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm';
+        const marginColor = v.margin_persen > 50 ? 'text-emerald-600' : v.margin_persen > 20 ? 'text-amber-600' : 'text-rose-600';
+        card.innerHTML = `
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <p class="text-sm font-bold text-slate-800">${v.label || 'Standar'}</p>
+              <p class="text-[10px] text-slate-400 font-mono">${v.id}</p>
+            </div>
+            <span class="text-xs font-bold ${marginColor}">${v.margin_persen ? v.margin_persen + '%' : '—'}</span>
+          </div>
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">HPP (Rp)</label>
+              <input type="number" min="0" data-vid="${v.id}" data-field="hpp"
+                class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold" value="${v.hpp || ''}" placeholder="0">
+            </div>
+            <div class="flex-1">
+              <label class="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Harga Jual (Rp)</label>
+              <input type="number" min="0" data-vid="${v.id}" data-field="harga"
+                class="input-field w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold" value="${v.harga_jual || ''}" placeholder="0">
+            </div>
+            <div class="flex shrink-0 items-end pb-1">
+              <button type="button" data-save-vid="${v.id}" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white shadow-sm">Simpan</button>
+            </div>
+          </div>`;
+        card.querySelector(`[data-save-vid="${v.id}"]`).onclick = async () => {
+          const hppVal = card.querySelector(`[data-vid="${v.id}"][data-field="hpp"]`).value;
+          const hargaVal = card.querySelector(`[data-vid="${v.id}"][data-field="harga"]`).value;
+          const btn = card.querySelector(`[data-save-vid="${v.id}"]`);
+          btn.disabled = true; btn.textContent = '...';
+          try {
+            const res = await apiPost({ action: 'SET_VARIANT_PRICING', variant_id: v.id, hpp: hppVal, harga_jual: hargaVal });
+            if (!res.success) throw new Error(res.message);
+            toast(res.message);
+            const marginEl = card.querySelector('.text-xs.font-bold');
+            if (marginEl && res.data) marginEl.textContent = res.data.margin_persen + '%';
+          } catch (e) { toast(e.message, 'error'); }
+          finally { btn.disabled = false; btn.textContent = 'Simpan'; }
+        };
+        wrap.appendChild(card);
+      });
+    }
+
+    $('btn-apply-bulk-pricing').onclick = async () => {
+      if (!pricingBarcode) return toast('Scan produk terlebih dahulu.', 'error');
+      const hpp = $('pricing-bulk-hpp').value;
+      const harga = $('pricing-bulk-harga').value;
+      if (!hpp && !harga) return toast('Isi minimal HPP atau Harga Jual.', 'error');
+      const btn = $('btn-apply-bulk-pricing'); btn.disabled = true; btn.textContent = 'Memperbarui...';
+      try {
+        const res = await apiPost({ action: 'SET_VARIANT_PRICING_BULK', barcode: pricingBarcode, hpp, harga_jual: harga });
+        if (!res.success) throw new Error(res.message);
+        toast(res.message);
+        await loadPricingForProduct(pricingBarcode);
+      } catch (e) { toast(e.message, 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Terapkan ke Semua Variasi'; }
+    };
+
+    $('btn-back-pricing').addEventListener('click', navigateBack);
+
+    // --- SCANNER & PRODUK / TRANSAKSI ---
     async function startScan(key, pushHistory = true) {
       state.key = key; state.barcode = ''; state.product = null; state.selectedVariant = null; state.selectedAttributes = {}; state.trxId = null; state.addVariantsMode = false;
-      $('scan-title').textContent = ACTIVITIES[key].label;
+      $('scan-title').textContent = ALL_ACTIVITIES[key]?.label || 'Scan Barcode';
       $('scan-subtitle').textContent = key === 'produk' ? 'Scan QR/barcode baru yang belum terdaftar' : 'Arahkan kamera ke QR/barcode produk';
       $('manual-form').classList.add('hidden'); $('manual-form').classList.remove('flex'); $('manual-barcode').value = '';
       $('btn-torch').classList.add('hidden');
-
       const isOpname = key === 'opname';
       $('scan-opname-indicator').classList.toggle('hidden', !isOpname);
-      if (isOpname && state.opnameSession) {
-        $('scan-opname-info').textContent = state.opnameSession.nama_sesi + ' (' + state.opnameSession.lokasi + ')';
-      }
+      if (isOpname && state.opnameSession) $('scan-opname-info').textContent = state.opnameSession.nama_sesi + ' (' + state.opnameSession.lokasi + ')';
       await stopScanner(); showScreen('scan', pushHistory); await startCamera();
     }
 
@@ -1349,14 +1249,8 @@
           if (state.scanLocked) return; state.scanLocked = true; playBeep(); await stopScanner(); await processBarcode(decoded.trim());
         }, () => { });
         state.scannerRunning = true;
-        try {
-          const capabilities = instance.getRunningTrackCameraCapabilities();
-          if (capabilities && capabilities.torchFeature && capabilities.torchFeature().isSupported()) {
-            $('btn-torch').classList.remove('hidden'); $('btn-torch').onclick = async () => { const next = !state.torchOn; state.torchOn = next; try { await instance.applyVideoConstraints({ advanced: [{ torch: next }] }); } catch (e) { toast('Lampu tidak dapat diubah.', 'error'); } };
-          }
-        } catch (e) { }
       } catch (error) {
-        console.error(error); $('manual-form').classList.remove('hidden'); $('manual-form').classList.add('flex'); toast('Kamera tidak dapat dibuka. Gunakan input manual.', 'error');
+        $('manual-form').classList.remove('hidden'); $('manual-form').classList.add('flex'); toast('Kamera tidak dapat dibuka. Gunakan input manual.', 'error');
       }
     }
 
@@ -1369,86 +1263,72 @@
           if (check.success) { toast('Barcode sudah terdaftar. Gunakan Kelola Data.', 'error'); return startCamera(); }
           openNewProductForm(barcode); return;
         }
-        const includeInactive = (state.key === 'kelola' || state.key === 'harga');
-        const result = await apiPost({ action: 'GET_PRODUCT', barcode, include_inactive: includeInactive });
+        const result = await apiPost({ action: 'GET_PRODUCT', barcode, include_inactive: state.key === 'kelola' });
         if (!result.success) { toast(result.message || 'Produk tidak ditemukan.', 'error'); return startCamera(); }
         state.product = result.data;
-        if (state.key === 'kelola') openManageProductForm(result.data);
-        else if (state.key === 'harga') openHargaHppForm(result.data);
-        else openTransactionForm(result.data);
-      } catch (error) {
-        console.error(error); toast('Tidak dapat menghubungi server. Periksa koneksi.', 'error'); startCamera();
-      }
+        if (state.key === 'scan-qc') {
+          showScreen('qc', false);
+          $('qc-wip-detail').classList.remove('hidden');
+          $('qc-wip-prod-name').textContent = result.data.nama + ' (' + result.data.barcode + ')';
+          renderVariantSelectForQC(result.data);
+        } else if (state.key === 'scan-pricing') {
+          loadPricingForProduct(barcode);
+        } else if (state.key === 'kelola') {
+          openManageProductForm(result.data);
+        } else {
+          openTransactionForm(result.data);
+        }
+      } catch (error) { toast('Tidak dapat menghubungi server. Periksa koneksi.', 'error'); startCamera(); }
+    }
+
+    function renderVariantSelectForQC(product) {
+      const root = $('qc-wip-variants'); root.innerHTML = '';
+      const variants = (product.variants || []).filter(v => v.active);
+      if (!variants.length) { root.innerHTML = '<p class="text-xs text-rose-500">Tidak ada variasi aktif</p>'; return; }
+      const sel = document.createElement('select');
+      sel.className = 'input-field w-full rounded-xl border border-slate-200 p-2.5 text-sm bg-white font-bold text-slate-800';
+      sel.innerHTML = '<option value="">-- Pilih Variasi WIP --</option>';
+      variants.forEach(v => { const opt = document.createElement('option'); opt.value = v.id; opt.textContent = v.label || 'Standar'; sel.appendChild(opt); });
+      sel.onchange = () => { state.selectedVariant = variants.find(x => x.id === sel.value) || null; };
+      root.appendChild(sel);
     }
 
     function resetFormVisibility() {
-      ['product-fields', 'default-pricing-card', 'variant-select-card', 'variant-manage-card', 'attribute-builder-card', 'location-card', 'outbound-price-card', 'qty-card', 'reporter-card', 'form-opname-alert'].forEach(id => {
+      ['product-fields', 'variant-select-card', 'variant-manage-card', 'attribute-builder-card', 'location-card', 'qty-card', 'reporter-card', 'form-opname-alert'].forEach(id => {
         const el = $(id); if (el) el.classList.add('hidden');
       });
-      $('btn-submit').classList.remove('hidden'); $('btn-cancel-add-variants').classList.add('hidden');
-      $('btn-open-add-variants').classList.remove('hidden');
+      $('btn-submit').classList.remove('hidden'); $('btn-cancel-add-variants').classList.add('hidden'); $('btn-open-add-variants').classList.remove('hidden');
     }
-
-    function updateDefaultMarginPreview() {
-      const hpp = Number($('default-hpp-input').value) || 0;
-      const hj = Number($('default-hj-input').value) || 0;
-      const profit = hj > 0 ? (hj - hpp) : 0;
-      const pct = hj > 0 ? ((profit / hj) * 100).toFixed(1) : '0.0';
-      $('default-margin-badge').textContent = `Profit: ${fmtRp(profit)} (${pct}%)`;
-    }
-    $('default-hpp-input').addEventListener('input', updateDefaultMarginPreview);
-    $('default-hj-input').addEventListener('input', updateDefaultMarginPreview);
 
     function openTransactionForm(product) {
       state.formMode = 'transaction'; state.selectedAttributes = {}; state.selectedVariant = null; state.locationFrom = ''; state.locationTo = ''; state.trxId = null;
       if (product.locations) LOCATIONS = product.locations;
-
       resetFormVisibility(); showScreen('form', true);
-      $('form-title').textContent = ACTIVITIES[state.key].label; $('form-subtitle').textContent = 'Pilih variasi, lokasi, dan kuantitas';
+      $('form-title').textContent = ACTIVITIES_GUDANG[state.key].label; $('form-subtitle').textContent = 'Pilih variasi, lokasi, dan kuantitas';
       $('form-barcode').textContent = product.barcode; $('product-status-pill').classList.remove('hidden'); $('product-status-pill').textContent = 'PRODUK AKTIF';
       $('variant-select-card').classList.remove('hidden'); $('variant-product-name').textContent = product.nama;
       renderVariantSelector(product);
 
-      const activity = ACTIVITIES[state.key];
+      const activity = ACTIVITIES_GUDANG[state.key];
       const isOpname = state.key === 'opname';
-
       if (isOpname && state.opnameSession) {
         $('form-opname-alert').classList.remove('hidden');
         $('form-opname-session-name').textContent = state.opnameSession.nama_sesi;
         $('form-opname-location').textContent = state.opnameSession.lokasi;
         state.locationTo = state.opnameSession.lokasi;
       } else {
-        const hasFrom = activity.fields.includes('from'); const hasTo = activity.fields.includes('to');
+        const hasFrom = activity.fields.includes('from'), hasTo = activity.fields.includes('to');
         $('location-card').classList.toggle('hidden', !(hasFrom || hasTo));
         $('location-from-wrap').classList.toggle('hidden', !hasFrom); $('location-to-wrap').classList.toggle('hidden', !hasTo);
         $('location-from-label').textContent = activity.labelFrom || 'Lokasi asal'; $('location-to-label').textContent = activity.labelTo || 'Lokasi tujuan';
         if (hasFrom) renderLocationOptions('from'); if (hasTo) renderLocationOptions('to');
       }
 
-      if (state.key === 'keluar') {
-        $('outbound-price-card').classList.remove('hidden');
-        $('outbound-price-input').value = '';
-        $('outbound-profit-preview').textContent = 'Est. Profit: Rp 0';
-      }
-
       $('qty-card').classList.remove('hidden'); $('qty-label').textContent = activity.qty; $('qty-input').value = ''; $('qty-input').min = activity.min;
       $('qty-hint').textContent = isOpname ? 'Masukkan jumlah fisik sebenarnya.' : 'Masukkan jumlah unit yang diproses.';
-
-      $('reporter-card').classList.remove('hidden');
-      $('reporter-input').value = '';
+      $('reporter-card').classList.remove('hidden'); $('reporter-input').value = '';
       $('btn-submit-text').textContent = isOpname ? 'Simpan Hitungan Fisik' : 'Simpan transaksi';
     }
-
-    function updateOutboundProfitPreview() {
-      if (state.key !== 'keluar' || !state.selectedVariant) return;
-      const qty = Number($('qty-input').value) || 0;
-      const hj = Number($('outbound-price-input').value) || 0;
-      const hpp = Number(state.selectedVariant.hpp) || 0;
-      const totalProfit = hj > 0 ? qty * (hj - hpp) : 0;
-      $('outbound-profit-preview').textContent = `Est. Profit (${qty} pcs): ${fmtRp(totalProfit)}`;
-    }
-    $('outbound-price-input').addEventListener('input', updateOutboundProfitPreview);
-    $('qty-input').addEventListener('input', updateOutboundProfitPreview);
 
     function renderVariantSelector(product) {
       const root = $('variant-selectors'); root.innerHTML = '';
@@ -1457,7 +1337,7 @@
       if (!activeVariants.length) { root.textContent = 'Tidak ada variasi aktif.'; return; }
       if (!definitions.length) {
         state.selectedVariant = activeVariants[0];
-        applySelectedVariantSummary(activeVariants[0]);
+        $('variant-selected-summary').classList.remove('hidden'); $('variant-selected-label').textContent = activeVariants[0].label || 'Standar'; $('variant-stock-summary').textContent = stockSummary(activeVariants[0]);
         return;
       }
       $('variant-selected-summary').classList.add('hidden');
@@ -1487,25 +1367,14 @@
       resolveSelectedVariant();
     }
 
-    function applySelectedVariantSummary(v) {
-      $('variant-selected-summary').classList.remove('hidden');
-      $('variant-selected-label').textContent = v.label || 'Standar';
-      $('variant-stock-summary').textContent = stockSummary(v);
-      $('variant-price-summary').textContent = `HPP: ${fmtRp(v.hpp)}  ·  Harga Jual: ${fmtRp(v.harga_jual)}  ·  Margin: ${fmtRp(v.margin_rp)}`;
-      if (state.key === 'keluar') {
-        $('outbound-price-input').value = v.harga_jual || 0;
-        updateOutboundProfitPreview();
-      }
-      updateQtyHint();
-    }
-
     function resolveSelectedVariant() {
       const definitions = state.product.attributes || [];
       const active = (state.product.variants || []).filter(v => v.active);
       const complete = definitions.every(d => !!state.selectedAttributes[d.name]);
       state.selectedVariant = complete ? active.find(v => definitions.every(d => v.attributes[d.name] === state.selectedAttributes[d.name])) || null : null;
-      if (state.selectedVariant) applySelectedVariantSummary(state.selectedVariant);
-      else $('variant-selected-summary').classList.add('hidden');
+      if (state.selectedVariant) {
+        $('variant-selected-summary').classList.remove('hidden'); $('variant-selected-label').textContent = state.selectedVariant.label; $('variant-stock-summary').textContent = stockSummary(state.selectedVariant); updateQtyHint();
+      } else $('variant-selected-summary').classList.add('hidden');
     }
 
     function stockSummary(variant) {
@@ -1518,10 +1387,7 @@
       const root = $('location-' + which + '-options'); root.innerHTML = '';
       LOCATIONS.forEach(location => {
         const button = document.createElement('button'); button.type = 'button'; button.className = 'choice-btn flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-left';
-        const logo = document.createElement('span'); logo.className = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black';
-        if (location.kind === 'warehouse') { logo.classList.add('bg-slate-100', 'text-slate-700'); logo.textContent = 'R'; }
-        if (location.kind === 'shopee') { logo.style.backgroundColor = '#ee4d2d'; logo.classList.add('text-white'); logo.textContent = 'S'; }
-        if (location.kind === 'tiktok') { logo.style.backgroundColor = '#111111'; logo.classList.add('text-white'); logo.textContent = '♪'; }
+        const logo = document.createElement('span'); logo.className = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 text-sm font-black'; logo.textContent = location.label[0]?.toUpperCase() || 'R';
         const name = document.createElement('span'); name.className = 'flex-1 text-sm font-semibold'; name.textContent = location.label;
         const check = document.createElement('span'); check.className = 'text-indigo-600'; check.textContent = '✓';
         const value = which === 'from' ? state.locationFrom : state.locationTo;
@@ -1530,8 +1396,7 @@
         button.addEventListener('click', () => {
           if (which === 'from') { state.locationFrom = location.value; if (state.locationTo === location.value) state.locationTo = ''; }
           else state.locationTo = location.value;
-          renderLocationOptions('from'); renderLocationOptions('to');
-          updateQtyHint();
+          renderLocationOptions('from'); renderLocationOptions('to'); updateQtyHint();
         });
         root.appendChild(button);
       });
@@ -1545,12 +1410,11 @@
 
     function openNewProductForm(barcode) {
       state.formMode = 'create'; state.product = null; state.matrix = []; state.addVariantsMode = false; resetFormVisibility(); showScreen('form', true);
-      $('form-title').textContent = 'Produk Baru'; $('form-subtitle').textContent = 'Daftarkan produk induk, variasi, HPP & Harga Jual'; $('form-barcode').textContent = barcode;
+      $('form-title').textContent = 'Produk Baru'; $('form-subtitle').textContent = 'Daftarkan produk induk dan variasinya'; $('form-barcode').textContent = barcode;
       $('product-fields').classList.remove('hidden'); $('product-name').value = ''; $('product-active').checked = true; $('product-status-pill').classList.add('hidden');
-      $('default-pricing-card').classList.remove('hidden'); $('default-hpp-input').value = ''; $('default-hj-input').value = ''; updateDefaultMarginPreview();
       $('attribute-builder-card').classList.remove('hidden'); $('attribute-list').innerHTML = ''; $('attribute-list').classList.remove('hidden'); $('btn-add-attribute').classList.remove('hidden'); $('simple-product').checked = false; $('simple-product').disabled = false;
       addAttributeRow({ name: 'Warna', type: 'color', raw: '' });
-      $('btn-add-attribute').classList.remove('hidden'); $('btn-open-add-variants').classList.add('hidden'); $('btn-submit-text').textContent = 'Daftarkan produk'; $('qty-card').classList.add('hidden');
+      $('btn-open-add-variants').classList.add('hidden'); $('btn-submit-text').textContent = 'Daftarkan produk';
       buildMatrixPreview(false);
     }
 
@@ -1560,12 +1424,11 @@
       row.innerHTML = `
         <div class="mb-2 flex items-center justify-between"><span class="text-xs font-bold text-slate-600">Atribut</span><button type="button" data-remove class="text-xs font-semibold text-rose-500">Hapus</button></div>
         <div class="grid grid-cols-[1fr_105px] gap-2"><input data-name class="input-field min-w-0 rounded-lg border border-slate-200 px-2.5 py-2 text-sm" placeholder="Nama, mis. Warna"><select data-type class="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs"><option value="text">Teks</option><option value="color">Warna</option></select></div>
-        <label class="mt-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilihan nilai</label><textarea data-values rows="2" class="input-field mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-2 text-xs" placeholder="Teks: ALLSIZE, XL. Warna: HITAM:#000000, PUTIH:#FFFFFF"></textarea>
-        <p class="mt-1 text-[10px] text-slate-400" data-hint>Untuk tipe Warna, tulis setiap nilai dengan format Nama:#RRGGBB.</p>`;
+        <label class="mt-2 block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pilihan nilai</label><textarea data-values rows="2" class="input-field mt-1 w-full rounded-lg border border-slate-200 px-2.5 py-2 text-xs" placeholder="Teks: L, XL. Warna: Hitam:#171717, Putih:#FFFFFF"></textarea>`;
       row.querySelector('[data-name]').value = data.name || '';
       row.querySelector('[data-type]').value = data.type || 'text';
       row.querySelector('[data-values]').value = data.raw || '';
-      row.querySelector('[data-type]').addEventListener('change', () => { row.querySelector('[data-hint]').textContent = row.querySelector('[data-type]').value === 'color' ? 'Format warna: HITAM:#000000, PUTIH:#FFFFFF.' : 'Pisahkan setiap pilihan dengan koma.'; buildMatrixPreview(state.addVariantsMode); });
+      row.querySelector('[data-type]').addEventListener('change', () => buildMatrixPreview(state.addVariantsMode));
       row.querySelector('[data-remove]').addEventListener('click', () => { row.remove(); buildMatrixPreview(state.addVariantsMode); });
       row.querySelectorAll('input,textarea').forEach(el => el.addEventListener('input', () => buildMatrixPreview(state.addVariantsMode)));
       root.appendChild(row);
@@ -1574,19 +1437,15 @@
     function parseAttributeRows() {
       const rows = [...$('attribute-list').querySelectorAll('.attribute-row')];
       const attrs = rows.map(row => {
-        const name = row.querySelector('[data-name]').value.trim();
-        const type = row.querySelector('[data-type]').value;
-        const raw = row.querySelector('[data-values]').value.trim();
+        const name = row.querySelector('[data-name]').value.trim(), type = row.querySelector('[data-type]').value, raw = row.querySelector('[data-values]').value.trim();
         if (!name || !raw) return null;
-        const tokens = raw.split(',').map(s => s.trim()).filter(Boolean);
-        const values = tokens.map(token => {
+        const values = raw.split(',').map(s => s.trim()).filter(Boolean).map(token => {
           if (type === 'color') { const parts = token.split(/[:=]/); return { value: (parts[0] || '').trim(), hex: (parts[1] || '').trim() }; }
           return { value: token, hex: '' };
         });
         return { name, type, values };
       });
-      if (attrs.some(a => !a)) throw new Error('Lengkapi nama atribut dan pilihan nilainya, atau hapus atribut yang kosong.');
-      const names = attrs.map(a => a.name.toLowerCase()); if (new Set(names).size !== names.length) throw new Error('Nama atribut tidak boleh sama.');
+      if (attrs.some(a => !a)) throw new Error('Lengkapi nama atribut dan pilihan nilainya.');
       return attrs;
     }
 
@@ -1600,33 +1459,25 @@
     }
 
     function buildMatrixPreview(isAddMode) {
-      const wrap = $('matrix-wrap'); const list = $('matrix-list');
+      const wrap = $('matrix-wrap'), list = $('matrix-list');
       if ($('simple-product').checked) { wrap.classList.remove('hidden'); list.innerHTML = '<p class="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Satu variasi Standar akan dibuat.</p>'; state.matrix = [{ attributes: {}, active: true, key: 'Standar' }]; $('matrix-count').textContent = '1 variasi'; return; }
       let attributes;
       try { attributes = parseAttributeRows(); } catch (e) { wrap.classList.add('hidden'); state.matrix = []; return; }
       if (!attributes.length) { wrap.classList.add('hidden'); state.matrix = []; return; }
       let combos = cartesianVariants(attributes);
-      if (combos.length > 300) { wrap.classList.remove('hidden'); list.innerHTML = '<p class="rounded-lg bg-rose-50 p-3 text-xs text-rose-600">Kombinasi lebih dari 300. Kurangi jumlah pilihan atribut.</p>'; state.matrix = []; $('matrix-count').textContent = 'Melebihi batas'; return; }
-      const existingKeys = new Set((state.product?.variants || []).map(v => variantKeyFromObject(v.attributes, attributes)));
-      const previous = new Map((state.matrix || []).map(v => [v.key, v.active]));
-      combos = combos.map(v => { const exists = existingKeys.has(variantKeyFromObject(v.attributes, attributes)); return Object.assign(v, { active: isAddMode ? (!exists && previous.get(v.key) !== false) : (previous.has(v.key) ? previous.get(v.key) : true), exists }); });
-      state.matrix = combos;
+      const existingKeys = new Set((state.product?.variants || []).map(v => definitionsKey(v.attributes, attributes)));
+      state.matrix = combos.map(v => Object.assign(v, { active: !existingKeys.has(definitionsKey(v.attributes, attributes)), exists: existingKeys.has(definitionsKey(v.attributes, attributes)) }));
       wrap.classList.remove('hidden'); list.innerHTML = '';
-      combos.forEach((combo, index) => {
+      state.matrix.forEach((combo, index) => {
         const row = document.createElement('label'); row.className = 'flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-2.5';
         const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = combo.active; cb.disabled = combo.exists; cb.className = 'h-4 w-4 accent-indigo-600';
-        cb.addEventListener('change', () => { state.matrix[index].active = cb.checked; updateMatrixCount(); });
-        const label = document.createElement('span'); label.className = 'min-w-0 flex-1 text-xs font-medium text-slate-700'; label.textContent = comboLabel(combo.attributes, attributes);
-        if (combo.exists) { const badge = document.createElement('span'); badge.className = 'text-[10px] font-semibold text-slate-400'; badge.textContent = 'Sudah ada'; row.append(cb, label, badge); }
-        else row.append(cb, label);
-        list.appendChild(row);
+        cb.addEventListener('change', () => { state.matrix[index].active = cb.checked; $('matrix-count').textContent = state.matrix.filter(x => x.active && !x.exists).length + ' dipilih'; });
+        const label = document.createElement('span'); label.className = 'min-w-0 flex-1 text-xs font-medium text-slate-700'; label.textContent = attributes.map(d => d.name + ': ' + combo.attributes[d.name]).join(' · ');
+        row.append(cb, label); list.appendChild(row);
       });
-      updateMatrixCount();
+      $('matrix-count').textContent = state.matrix.filter(x => x.active && !x.exists).length + ' dipilih';
     }
-
-    function updateMatrixCount() { const active = state.matrix.filter(v => v.active && !v.exists).length; const total = state.matrix.filter(v => !v.exists).length; $('matrix-count').textContent = active + ' / ' + total + ' dipilih'; }
-    function comboLabel(attrs, definitions) { if (!definitions.length) return 'Standar'; return definitions.map(d => d.name + ': ' + attrs[d.name]).join(' · '); }
-    function variantKeyFromObject(attrs, definitions) { return definitions.map(d => d.name + '=' + String(attrs[d.name] || '').toLowerCase()).join('|'); }
+    function definitionsKey(attrs, defs) { return defs.map(d => d.name + '=' + String(attrs[d.name] || '').toLowerCase()).join('|'); }
 
     function openManageProductForm(product) {
       state.formMode = 'manage'; resetFormVisibility(); showScreen('form', true);
@@ -1643,37 +1494,28 @@
       product.variants.forEach(v => {
         const row = document.createElement('div'); row.className = 'flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-3';
         const main = document.createElement('div'); main.className = 'min-w-0 flex-1';
-        const title = document.createElement('p'); title.className = 'text-xs font-semibold text-slate-800'; title.textContent = v.label || 'Standar';
-        const stock = document.createElement('p'); stock.className = 'mt-1 text-[10px] text-slate-400'; stock.textContent = stockSummary(v);
-        const priceInfo = document.createElement('p'); priceInfo.className = 'mt-0.5 text-[10px] font-semibold text-emerald-700';
-        priceInfo.textContent = `HPP: ${fmtRp(v.hpp)} · Jual: ${fmtRp(v.harga_jual)} · Profit: ${fmtRp(v.margin_rp)}`;
+        main.innerHTML = `<p class="text-xs font-semibold text-slate-800">${v.label || 'Standar'}</p><p class="mt-1 text-[10px] text-slate-400">${stockSummary(v)}</p>`;
         const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = `rounded-full px-3 py-1.5 text-[10px] font-bold ${v.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`; toggle.textContent = v.active ? 'Aktif' : 'Nonaktif';
         toggle.addEventListener('click', async () => {
           toggle.disabled = true;
           try { const res = await apiPost({ action: 'SET_VARIANT_STATUS', barcode: product.barcode, variant_id: v.id, active: !v.active }); if (!res.success) throw new Error(res.message); const refreshed = await apiPost({ action: 'GET_PRODUCT', barcode: product.barcode, include_inactive: true }); state.product = refreshed.data; renderVariantManagement(refreshed.data); toast(res.message); }
-          catch (e) { toast(e.message || 'Gagal mengubah status variasi.', 'error'); toggle.disabled = false; }
+          catch (e) { toast(e.message || 'Gagal mengubah status.', 'error'); toggle.disabled = false; }
         });
-        main.append(title, stock, priceInfo); row.append(main, toggle); root.appendChild(row);
+        row.append(main, toggle); root.appendChild(row);
       });
     }
 
     function openAddVariantsPanel() {
-      state.addVariantsMode = true; state.matrix = []; $('variant-manage-card').classList.add('hidden');
-      $('default-pricing-card').classList.remove('hidden'); $('default-hpp-input').value = ''; $('default-hj-input').value = ''; updateDefaultMarginPreview();
-      $('attribute-builder-card').classList.remove('hidden'); $('btn-open-add-variants').classList.add('hidden'); $('btn-cancel-add-variants').classList.remove('hidden'); $('btn-submit-text').textContent = 'Simpan variasi baru';
+      state.addVariantsMode = true; state.matrix = []; $('variant-manage-card').classList.add('hidden'); $('attribute-builder-card').classList.remove('hidden'); $('btn-open-add-variants').classList.add('hidden'); $('btn-cancel-add-variants').classList.remove('hidden'); $('btn-submit-text').textContent = 'Simpan variasi baru';
       $('simple-product').checked = false; $('simple-product').disabled = !!((state.product.attributeDefinitions || []).length || state.product.variants.length); $('attribute-list').innerHTML = ''; $('attribute-list').classList.remove('hidden'); $('btn-add-attribute').classList.remove('hidden');
       const defs = state.product.attributeDefinitions || [];
-      if (defs.length) defs.forEach(d => {
-        const raw = d.values.map(v => d.type === 'color' ? v.value + ':' + v.hex : v.value).join(', ');
-        addAttributeRow({ name: d.name, type: d.type, raw });
-      });
+      if (defs.length) defs.forEach(d => addAttributeRow({ name: d.name, type: d.type, raw: d.values.map(v => d.type === 'color' ? v.value + ':' + v.hex : v.value).join(', ') }));
       else addAttributeRow({ name: 'Warna', type: 'color', raw: '' });
       buildMatrixPreview(true);
     }
 
     function cancelAddVariants() {
-      state.addVariantsMode = false; $('attribute-builder-card').classList.add('hidden'); $('default-pricing-card').classList.add('hidden');
-      $('variant-manage-card').classList.remove('hidden'); $('btn-open-add-variants').classList.remove('hidden'); $('btn-cancel-add-variants').classList.add('hidden'); $('btn-submit-text').textContent = 'Simpan data produk'; $('simple-product').disabled = false;
+      state.addVariantsMode = false; $('attribute-builder-card').classList.add('hidden'); $('variant-manage-card').classList.remove('hidden'); $('btn-open-add-variants').classList.remove('hidden'); $('btn-cancel-add-variants').classList.add('hidden'); $('btn-submit-text').textContent = 'Simpan data produk'; $('simple-product').disabled = false;
     }
 
     $('main-form').addEventListener('submit', async event => {
@@ -1684,20 +1526,8 @@
           const attributes = $('simple-product').checked ? [] : parseAttributeRows();
           const variants = state.matrix.filter(v => v.active && !v.exists).map(v => ({ attributes: v.attributes, active: true }));
           if (!variants.length) throw new Error('Pilih minimal satu kombinasi variasi.');
-          if (attributes.length === 0 && !$('simple-product').checked) throw new Error('Tambahkan atribut atau pilih Produk tanpa pilihan variasi.');
           if (!$('product-name').value.trim()) throw new Error('Nama produk wajib diisi.');
-          const payload = {
-            action: 'CREATE_PRODUCT',
-            transaction_id: newTransactionId(),
-            barcode: state.barcode,
-            nama: $('product-name').value.trim(),
-            status_aktif: $('product-active').checked,
-            default_hpp: Number($('default-hpp-input').value) || 0,
-            default_harga_jual: Number($('default-hj-input').value) || 0,
-            attributes,
-            variants
-          };
-          await submitPayload(payload, 'scan');
+          await submitPayload({ action: 'CREATE_PRODUCT', transaction_id: newTransactionId(), barcode: state.barcode, nama: $('product-name').value.trim(), status_aktif: $('product-active').checked, attributes, variants }, 'scan');
         } catch (e) { toast(e.message, 'error'); }
         return;
       }
@@ -1706,15 +1536,7 @@
           const attributes = parseAttributeRows();
           const variants = state.matrix.filter(v => v.active && !v.exists).map(v => ({ attributes: v.attributes, active: true }));
           if (!variants.length) throw new Error('Pilih minimal satu kombinasi variasi baru.');
-          await submitPayload({
-            action: 'ADD_VARIANTS',
-            transaction_id: newTransactionId(),
-            barcode: state.barcode,
-            default_hpp: Number($('default-hpp-input').value) || 0,
-            default_harga_jual: Number($('default-hj-input').value) || 0,
-            attributes,
-            variants
-          }, 'scan');
+          await submitPayload({ action: 'ADD_VARIANTS', transaction_id: newTransactionId(), barcode: state.barcode, attributes, variants }, 'scan');
         } catch (e) { toast(e.message, 'error'); }
         return;
       }
@@ -1724,49 +1546,26 @@
         return;
       }
 
-      const activity = ACTIVITIES[state.key];
+      const activity = ACTIVITIES_GUDANG[state.key];
       if (!state.selectedVariant) return toast('Pilih variasi produk terlebih dahulu.', 'error');
 
       if (state.key === 'opname') {
-        const qtyRaw = $('qty-input').value; const qty = Number(qtyRaw);
+        const qtyRaw = $('qty-input').value, qty = Number(qtyRaw);
         if (qtyRaw === '' || !Number.isInteger(qty) || qty < 0) return toast('Kuantitas tidak valid.', 'error');
         const pelapor = $('reporter-input').value.trim();
         if (!pelapor) return toast('Nama pelapor wajib diisi.', 'error');
-        await submitPayload({
-          action: 'SUBMIT_OPNAME_COUNT',
-          session_id: state.opnameSession.session_id,
-          barcode: state.barcode,
-          variant_id: state.selectedVariant.id,
-          qty,
-          nama_pelapor: pelapor
-        }, 'scan-continue');
+        await submitPayload({ action: 'SUBMIT_OPNAME_COUNT', session_id: state.opnameSession.session_id, barcode: state.barcode, variant_id: state.selectedVariant.id, qty: qty, nama_pelapor: pelapor }, 'scan-continue');
         return;
       }
 
       if (activity.fields.includes('from') && !state.locationFrom) return toast('Pilih lokasi asal.', 'error');
       if (activity.fields.includes('to') && !state.locationTo) return toast('Pilih lokasi tujuan.', 'error');
-
-      const qtyRaw = $('qty-input').value; const qty = Number(qtyRaw);
+      const qtyRaw = $('qty-input').value, qty = Number(qtyRaw);
       if (qtyRaw === '' || !Number.isInteger(qty) || qty < activity.min) return toast('Kuantitas tidak valid.', 'error');
-
       const pelapor = $('reporter-input').value.trim();
       if (!pelapor) return toast('Nama pelapor wajib diisi.', 'error');
 
-      const trxPayload = {
-        action: 'SAVE_TRANSACTION',
-        transaction_id: state.trxId || newTransactionId(),
-        activity: activity.value,
-        barcode: state.barcode,
-        variant_id: state.selectedVariant.id,
-        location_from: state.locationFrom,
-        location_to: state.locationTo,
-        qty,
-        nama_pelapor: pelapor
-      };
-      if (state.key === 'keluar') {
-        trxPayload.harga_jual = Number($('outbound-price-input').value) || 0;
-      }
-      await submitPayload(trxPayload, 'scan');
+      await submitPayload({ action: 'SAVE_TRANSACTION', transaction_id: state.trxId || newTransactionId(), activity: activity.value, barcode: state.barcode, variant_id: state.selectedVariant.id, location_from: state.locationFrom, location_to: state.locationTo, qty, nama_pelapor: pelapor }, 'scan');
     });
 
     async function submitPayload(payload, returnAction) {
@@ -1776,15 +1575,10 @@
         if (!result.success) throw new Error(result.message || 'Data gagal disimpan.');
         toast(result.message || 'Berhasil disimpan.');
         state.trxId = null;
-
-        if (returnAction === 'scan-continue') {
-          showScreen('scan', false); $('qty-input').value = ''; startCamera();
-        } else {
-          await stopScanner(); history.back();
-        }
-      } catch (error) {
-        console.error(error); state.trxId = payload.transaction_id; toast(error.message || 'Gagal menghubungi server.', 'error');
-      } finally {
+        if (returnAction === 'scan-continue') { showScreen('scan', false); $('qty-input').value = ''; startCamera(); }
+        else { await stopScanner(); history.back(); }
+      } catch (error) { state.trxId = payload.transaction_id; toast(error.message || 'Gagal menghubungi server.', 'error'); }
+      finally {
         button.disabled = false;
         if (state.formMode === 'create') $('btn-submit-text').textContent = 'Daftarkan produk';
         else if (state.formMode === 'manage' && state.addVariantsMode) $('btn-submit-text').textContent = 'Simpan variasi baru';
@@ -1795,9 +1589,15 @@
 
     function newTransactionId() { return 'TRX-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7).toUpperCase(); }
 
-    $('btn-cancel-scan').addEventListener('click', navigateBack);
-    $('btn-back-harga').addEventListener('click', navigateBack);
+    $('btn-cancel-scan').addEventListener('click', () => {
+      if (state.key === 'scan-qc') showScreen('qc', false);
+      else if (state.key === 'scan-pricing') showScreen('pricing', false);
+      else navigateBack();
+    });
     $('btn-back-wo').addEventListener('click', navigateBack);
+    $('btn-back-qc').addEventListener('click', navigateBack);
+    $('btn-back-tarif').addEventListener('click', navigateBack);
+    $('btn-back-upah').addEventListener('click', navigateBack);
     $('btn-back').addEventListener('click', () => {
       if (state.key === 'opname') { showScreen('scan', false); startCamera(); }
       else navigateBack();
@@ -1813,9 +1613,6 @@
     showScreen('home', false);
     history.replaceState({ app: true, screen: 'home' }, '', '#home');
 
-    if (!isGasConfigured()) {
-      window.addEventListener('load', () => setTimeout(() => toast('URL Apps Script belum diatur (APP_CONFIG.GAS_URL).', 'error'), 600));
-    }
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
       let reloadRequested = false;
       function showUpdateBanner(worker) {
@@ -1823,39 +1620,24 @@
         const bar = document.createElement('div');
         bar.id = 'sw-update-banner';
         bar.className = 'fixed left-3 right-3 bottom-3 z-50 flex items-center justify-between gap-3 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-lg';
-        bar.innerHTML = '<span>Versi baru tersedia. Selesaikan transaksi yang sedang diisi dulu.</span>';
+        bar.innerHTML = '<span>Versi baru tersedia. Selesaikan transaksi dulu.</span>';
         const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'shrink-0 rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-900';
-        btn.textContent = 'Muat ulang';
+        btn.type = 'button'; btn.className = 'shrink-0 rounded-lg bg-white px-3 py-1.5 font-semibold text-slate-900'; btn.textContent = 'Muat ulang';
         btn.addEventListener('click', () => { reloadRequested = true; worker.postMessage({ type: 'SKIP_WAITING' }); });
-        bar.appendChild(btn);
-        document.body.appendChild(bar);
+        bar.appendChild(btn); document.body.appendChild(bar);
       }
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
           if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg.waiting);
           reg.addEventListener('updatefound', () => {
             const worker = reg.installing;
-            if (!worker) return;
-            worker.addEventListener('statechange', () => {
-              if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(worker);
-            });
+            if (worker) worker.addEventListener('statechange', () => { if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(worker); });
           });
-        }).catch(err => console.warn('Service worker error:', err));
+        }).catch(() => { });
       });
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!reloadRequested) return;
-        reloadRequested = false;
-        location.reload();
-      });
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (reloadRequested) { reloadRequested = false; location.reload(); } });
     }
-
-    let deferredInstall = null;
-    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-    window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferredInstall = event; if (!standalone) $('btn-install').classList.remove('hidden'); });
-    $('btn-install').addEventListener('click', async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('btn-install').classList.add('hidden'); });
-    window.addEventListener('appinstalled', () => { $('btn-install').classList.add('hidden'); toast('Aplikasi berhasil dipasang.'); });
   </script>
 </body>
+
 </html>
